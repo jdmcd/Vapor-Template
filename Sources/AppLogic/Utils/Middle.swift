@@ -26,6 +26,13 @@ final public class AuthMiddleWare: Middleware {
     }
 }
 
+final public class APIProtection: Middleware {
+    public func respond(to request: Request, chainingTo next: Responder) throws -> Response {
+        let _ = try request.APIUser()
+        return try next.respond(to: request)
+    }
+}
+
 //redirect to home if they're already logged in
 final public class RedirectMiddleware: Middleware {
     public func respond(to request: Request, chainingTo next: Responder) throws -> Response {
@@ -63,5 +70,13 @@ extension Request {
         } else {
             return nil
         }
+    }
+    
+    func APIUser() throws -> User {
+        guard let sessionToken = headers["sessionToken"]?.string else { throw Abort.custom(status: .unauthorized, message: "No Session Token Included") }
+        guard let sessionSecret = headers["sessionSecret"]?.string else { throw Abort.custom(status: .unauthorized, message: "No Session Secret Included") }
+        guard let session = try Session.query().filter("token", sessionToken).filter("secret", sessionSecret).all().first else { throw Abort.custom(status: .unauthorized, message: "Invalid Token/Key") }
+        guard let user = try User.find(session.user) else { throw Abort.custom(status: .unauthorized, message: "User Does Not Exist") }
+        return user
     }
 }
