@@ -11,6 +11,7 @@ final class User: Model {
     var name: String
     var email: String
     var password: String
+    var admin: Bool
     
     var exists: Bool = false
     
@@ -18,6 +19,7 @@ final class User: Model {
         self.name = name
         self.email = email
         self.password = BCrypt.hash(password: password)
+        self.admin = false
     }
     
     init(node: Node, in context: Context) throws {
@@ -25,6 +27,7 @@ final class User: Model {
         self.name = try node.extract("name")
         self.email = try node.extract("email")
         self.password = try node.extract("password")
+        self.admin = false
     }
     
     func makeNode(context: Context) throws -> Node {
@@ -32,7 +35,8 @@ final class User: Model {
             "id": id,
             "name": name,
             "email": email,
-            "password": password
+            "password": password,
+            "admin": admin
             ])
     }
     
@@ -41,15 +45,32 @@ final class User: Model {
     }
     
     
+    /// Set Session
+    ///
+    /// - Parameters:
+    ///   - json: json
+    ///   - req: the Request object
+    /// - Returns: returns a Bool on whether or not it was successful
+    /// - Throws: An Abort Error
+    static func setSession(json: JSON, req: Request) throws -> Bool {
+        guard let secret = json["secret"]?.string else { throw Abort.badRequest }
+        guard let token = json["token"]?.string else { throw Abort.badRequest }
+        
+        try req.session().data["sessionToken"] = Node.string(token)
+        try req.session().data["sessionSecret"] = Node.string(secret)
+        try req.session().data["user"] = try req.user()?.makeNode()
+        
+        return true
+    }
+    
     /// Login from the API
     ///
-    /// - Parameter req: A `Request` from the call
+    /// - Parameter data: A Node with the req data
     /// - Returns: A `Response` with detailed JSON on the result
     /// - Throws: An Abort Error
-    static func loginAPI(req: Request) throws -> Response {
-        let form = req.data
-        guard let email = form["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
-        guard let submittedPassword = form["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
+    static func loginAPI(data: Node) throws -> Response {
+        guard let email = data["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
+        guard let submittedPassword = data["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
         
         let fetchedUser = try User.query() .filter("email", email).first()
         let id = fetchedUser?.id?.int!
@@ -74,17 +95,39 @@ final class User: Model {
     }
     
     
+    /// Login from the frontend
+    ///
+    /// - Parameters:
+    ///   - data: A Node with the req data
+    ///   - req: The request object
+    /// - Returns: A `Response` that redirects the user
+    /// - Throws: An Abort Error
+    static func loginFrontend(data: Node, req: Request) throws -> Response {
+        let apiLoginResponse = try loginAPI(data: data)
+        if apiLoginResponse.status == .ok {
+            guard let token = apiLoginResponse.json?["token"]?.string else { throw Abort.badRequest }
+            guard let secret = apiLoginResponse.json?["secret"]?.string else { throw Abort.badRequest }
+            
+            try req.session().data["sessionToken"] = token.makeNode()
+            try req.session().data["sessionSecret"] = secret.makeNode()
+            
+            return Response(redirect: "home").flash(.success, "Successfully logged in")
+        } else if apiLoginResponse.status == .unauthorized {
+            return Response(redirect: "login").flash(.error, "Invalid Credentials")
+        } else {
+            return Response(redirect: "login").flash(.error, "Something went wrong")
+        }
+    }
+    
     /// Register a new user from the API
     ///
-    /// - Parameter req: A `Request` from the call
+    /// - Parameter data: A Node with the req data
     /// - Returns: A `Response` with detailed JSON on the result
     /// - Throws: An Abort Error
-    static func registerAPI(req: Request) throws -> Response {
-        let json = req.data
-        
-        guard let name = json["name"]?.string else { throw Abort.custom(status: .badRequest, message: "'name' must be included") }
-        guard let email = json["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
-        guard let password = json["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
+    static func registerAPI(data: Node) throws -> Response {
+        guard let name = data["name"]?.string else { throw Abort.custom(status: .badRequest, message: "'name' must be included") }
+        guard let email = data["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
+        guard let password = data["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
         
         let usersReturned = try User.query().filter("email", email).all()
         if usersReturned.isEmpty {
@@ -101,6 +144,31 @@ final class User: Model {
         }
     }
     
+    static func registerFromView(req: Request) throws -> Response {
+        guard let form = req.formURLEncoded else { throw Abort.badRequest }
+        guard let name = form["name"]?.string else { throw Abort.badRequest }
+        guard let email = form["email"]?.string else { throw Abort.badRequest }
+        guard let password = form["password"]?.string else { throw Abort.badRequest }
+        guard let confirmPassword = form["confirm_password"]?.string else { throw Abort.badRequest }
+        
+        if password != confirmPassword {
+            return Response(redirect: "register").flash(.error, "Passwords don't match")
+        }
+        
+        let json = JSON(["name": name.makeNode(), "email": email.makeNode(), "password": password.makeNode()])
+        
+        do {
+            let registerResult = try User.registerAPI(data: json.makeNode())
+            let sessionResult = try User.setSession(json: registerResult.json!, req: req)
+            if sessionResult {
+                return Response(redirect: "home")
+            } else {
+                return Response(redirect: "register").flash(.error, "Something went wrong. Please try again")
+            }
+        } catch {
+            return Response(redirect: "register").flash(.error, "Email is taken")
+        }
+    }
     
     /// Logouts the user from the API
     ///
@@ -109,6 +177,17 @@ final class User: Model {
     func logoutAPI() throws -> Response {
         try Session.query().filter("user_id", id!).delete()
         return try Response(status: .accepted, json: JSON(["success":true]))
+    }
+    
+    
+    /// Logouts the user from the frontend
+    ///
+    /// - Returns: A `Response` to redirect the user
+    /// - Throws: An Abort Error
+    func logoutFrontend(req: Request) throws -> Response {
+        try Session.query().filter("user_id", id!.int!).delete()
+        try req.session().destroy()
+        return Response(redirect: "/").flash(.success, "Successfully Logged Out")
     }
 }
 
@@ -120,6 +199,7 @@ extension User: Preparation {
             users.string("name", length: 255, optional: false)
             users.string("email", length: 255, optional: false)
             users.string("password", length: 255, optional: false)
+            users.bool("admin")
         })
     }
     

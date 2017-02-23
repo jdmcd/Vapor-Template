@@ -1,0 +1,3 @@
+#embed("Views/head")
+#embed("Body/register")
+#embed("Views/footer")
