@@ -55,10 +55,12 @@ final class User: Model {
     static func setSession(json: JSON, req: Request) throws -> Bool {
         guard let secret = json["secret"]?.string else { throw Abort.badRequest }
         guard let token = json["token"]?.string else { throw Abort.badRequest }
+        guard let userId = json["userId"]?.int else { throw Abort.badRequest }
         
         try req.session().data["sessionToken"] = Node.string(token)
         try req.session().data["sessionSecret"] = Node.string(secret)
         try req.session().data["user"] = try req.user()?.makeNode()
+        try req.session().data["userId"] = try userId.makeNode()
         
         return true
     }
@@ -68,27 +70,28 @@ final class User: Model {
     /// - Parameter data: A Node with the req data
     /// - Returns: A `Response` with detailed JSON on the result
     /// - Throws: An Abort Error
-    static func loginAPI(data: Node) throws -> Response {
+    static func loginAPI(data: Node, req: Request) throws -> Response {
         guard let email = data["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
         guard let submittedPassword = data["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
         
-        let fetchedUser = try User.query() .filter("email", email).first()
-        let id = fetchedUser?.id?.int!
+        guard let fetchedUser = try User.query().filter("email", email).first() else { throw Abort.badRequest }
+        let id = fetchedUser.id!
         
-        if let password = fetchedUser?.password, password != "", (try? BCrypt.verify(password: submittedPassword, matchesHash: password)) == true {
-            //they passed verification
-            
+        if try BCrypt.verify(password: submittedPassword, matchesHash: fetchedUser.password) {
             //see if a session already exists
-            if let fetchedSession = try Session.query().filter("user_id", id!).first() {
-                return try Response(status: .ok, json: JSON(["token": fetchedSession.token.makeNode(), "secret": fetchedSession.secret.makeNode()]))
+            if
+                let token = try req.session().data["sessionToken"]?.string,
+                let secret = try req.session().data["sessionSecret"]?.string {
+                
+                return try Response(status: .ok, json: JSON(["userId": id, "token": token.makeNode(), "secret": secret.makeNode()]))
             } else {
+                let secret = TurnstileCrypto.URandom().secureToken
+                let token = TurnstileCrypto.URandom().secureToken
                 
-                var newSession = Session(user: id!)
-                try newSession.save()
-                
-                return try Response(status: .ok, json: JSON(["token": newSession.token.makeNode(), "secret": newSession.secret.makeNode()]))
+                let json = JSON(["token": token.makeNode(), "secret": secret.makeNode(), "userId": id])
+                let _ = try User.setSession(json: json, req: req)
+                return try Response(status: .ok, json: json)
             }
-            
         } else {
             return try Response(status: .unauthorized, json: JSON(["error":true, "message": "Invalid credentials"]))
         }
@@ -103,13 +106,14 @@ final class User: Model {
     /// - Returns: A `Response` that redirects the user
     /// - Throws: An Abort Error
     static func loginFrontend(data: Node, req: Request) throws -> Response {
-        let apiLoginResponse = try loginAPI(data: data)
+        let apiLoginResponse = try loginAPI(data: data, req: req)
         if apiLoginResponse.status == .ok {
             guard let token = apiLoginResponse.json?["token"]?.string else { throw Abort.badRequest }
             guard let secret = apiLoginResponse.json?["secret"]?.string else { throw Abort.badRequest }
+            guard let userId = apiLoginResponse.json?["userId"]?.int else { throw Abort.badRequest }
             
-            try req.session().data["sessionToken"] = token.makeNode()
-            try req.session().data["sessionSecret"] = secret.makeNode()
+            let json = JSON(["secret": secret.makeNode(), "token": token.makeNode(), "userId": try userId.makeNode()])
+            let _ = try User.setSession(json: json, req: req)
             
             return Response(redirect: "home").flash(.success, "Successfully logged in")
         } else if apiLoginResponse.status == .unauthorized {
@@ -124,7 +128,7 @@ final class User: Model {
     /// - Parameter data: A Node with the req data
     /// - Returns: A `Response` with detailed JSON on the result
     /// - Throws: An Abort Error
-    static func registerAPI(data: Node) throws -> Response {
+    static func registerAPI(data: Node, req: Request) throws -> Response {
         guard let name = data["name"]?.string else { throw Abort.custom(status: .badRequest, message: "'name' must be included") }
         guard let email = data["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
         guard let password = data["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
@@ -134,10 +138,12 @@ final class User: Model {
             var user = User(name: name, email: email, password: password)
             try user.save()
             
-            var newSession = Session(user: user.id!.int!)
-            try newSession.save()
+            let secret = TurnstileCrypto.URandom().secureToken
+            let token = TurnstileCrypto.URandom().secureToken
+            let sessionJson = JSON(["secret": secret.makeNode(), "token": token.makeNode(), "userId": user.id!])
+            let _ = try User.setSession(json: sessionJson, req: req)
             
-            let json = JSON(["name": .string(name), "email": .string(email), "token": .string(newSession.token), "secret": .string(newSession.secret)])
+            let json = JSON(["name": .string(name), "email": .string(email), "token": .string(token), "secret": .string(secret), "userId": user.id!])
             return try Response(status: .ok, json: json)
         } else {
             throw Abort.custom(status: .badRequest, message: "Email is already registered")
@@ -158,7 +164,7 @@ final class User: Model {
         let json = JSON(["name": name.makeNode(), "email": email.makeNode(), "password": password.makeNode()])
         
         do {
-            let registerResult = try User.registerAPI(data: json.makeNode())
+            let registerResult = try User.registerAPI(data: json.makeNode(), req: req)
             let sessionResult = try User.setSession(json: registerResult.json!, req: req)
             if sessionResult {
                 return Response(redirect: "home")
@@ -174,20 +180,9 @@ final class User: Model {
     ///
     /// - Returns: A response with JSON
     /// - Throws: An Abort Error
-    func logoutAPI() throws -> Response {
-        try Session.query().filter("user_id", id!).delete()
-        return try Response(status: .accepted, json: JSON(["success":true]))
-    }
-    
-    
-    /// Logouts the user from the frontend
-    ///
-    /// - Returns: A `Response` to redirect the user
-    /// - Throws: An Abort Error
-    func logoutFrontend(req: Request) throws -> Response {
-        try Session.query().filter("user_id", id!.int!).delete()
+    func logout(req: Request) throws -> Response {
         try req.session().destroy()
-        return Response(redirect: "/").flash(.success, "Successfully Logged Out")
+        return try Response(status: .ok, json: JSON(["success":true]))
     }
 }
 

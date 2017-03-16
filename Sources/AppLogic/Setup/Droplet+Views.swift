@@ -8,7 +8,7 @@ public func loadViews(_ drop: Droplet) throws {
     }
     
     //redirect these calls back home if the user is already logged in
-    drop.group(RedirectMiddleware(path: "home")) { redirect in
+    drop.group(RedirectMiddleware(path: "/")) { redirect in
         redirect.get("login") { req in
             return try drop.view.make("login", for: req)
         }
@@ -31,7 +31,16 @@ public func loadViews(_ drop: Droplet) throws {
     drop.group(AuthMiddleWare()) { authed in
         authed.get("logout") { req in
             guard let user = try req.user() else { throw Abort.badRequest }
-            return try user.logoutFrontend(req: req)
+            let response = try user.logout(req: req)
+            if response.status == .ok {
+                return Response(redirect: "/").flash(.success, "Logged out")
+            } else {
+                return Response(redirect: "/").flash(.error, "Something went wrong")
+            }
+        }
+        
+        authed.get("home") { req in
+            return ""
         }
     }
 }
