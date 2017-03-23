@@ -1,9 +1,7 @@
-import Foundation
-import Fluent
 import Vapor
-import Turnstile
-import TurnstileCrypto
-import TurnstileWeb
+import Fluent
+import Auth
+import BCrypt
 import HTTP
 
 final class User: Model {
@@ -18,7 +16,7 @@ final class User: Model {
     init(name: String, email: String, password: String) {
         self.name = name
         self.email = email
-        self.password = BCrypt.hash(password: password)
+        self.password = password
         self.admin = false
     }
     
@@ -27,162 +25,44 @@ final class User: Model {
         self.name = try node.extract("name")
         self.email = try node.extract("email")
         self.password = try node.extract("password")
-        self.admin = false
+        self.admin = try node.extract("admin") ?? false
     }
     
     func makeNode(context: Context) throws -> Node {
-        return try Node(node: [
+        var node = try Node(node: [
             "id": id,
             "name": name,
             "email": email,
-            "password": password,
             "admin": admin
             ])
+        
+        switch context {
+        case is UserContext:
+            guard let userContext = context as? UserContext else { throw Abort.badRequest }
+            node["token"] = userContext.token.makeNode()
+        case is DatabaseContext:
+            node["password"] = password.makeNode()
+        default: ()
+        }
+        
+        return node
     }
     
     func makeJSON() throws -> JSON {
-        return JSON(["name": .string(name), "email": .string(email)])
+        return JSON([
+            "name": .string(name),
+            "email": .string(email),
+            "admin": .bool(admin)
+            ])
     }
     
-    
-    /// Set Session
-    ///
-    /// - Parameters:
-    ///   - json: json
-    ///   - req: the Request object
-    /// - Returns: returns a Bool on whether or not it was successful
-    /// - Throws: An Abort Error
-    static func setSession(json: JSON, req: Request) throws -> Bool {
-        guard let secret = json["secret"]?.string else { throw Abort.badRequest }
-        guard let token = json["token"]?.string else { throw Abort.badRequest }
-        guard let userId = json["userId"]?.int else { throw Abort.badRequest }
-        
-        try req.session().data["sessionToken"] = Node.string(token)
-        try req.session().data["sessionSecret"] = Node.string(secret)
-        try req.session().data["user"] = try req.user()?.makeNode()
-        try req.session().data["userId"] = try userId.makeNode()
-        
-        return true
+    func setSession(req: Request) throws {
+        try req.session().data["user"] = makeNode(context: SessionContext())
     }
     
-    /// Login from the API
-    ///
-    /// - Parameter data: A Node with the req data
-    /// - Returns: A `Response` with detailed JSON on the result
-    /// - Throws: An Abort Error
-    static func loginAPI(data: Node, req: Request) throws -> Response {
-        guard let email = data["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
-        guard let submittedPassword = data["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
-        
-        guard let fetchedUser = try User.query().filter("email", email).first() else { throw Abort.badRequest }
-        let id = fetchedUser.id!
-        
-        if try BCrypt.verify(password: submittedPassword, matchesHash: fetchedUser.password) {
-            //see if a session already exists
-            if
-                let token = try req.session().data["sessionToken"]?.string,
-                let secret = try req.session().data["sessionSecret"]?.string {
-                
-                return try Response(status: .ok, json: JSON(["userId": id, "token": token.makeNode(), "secret": secret.makeNode()]))
-            } else {
-                let secret = TurnstileCrypto.URandom().secureToken
-                let token = TurnstileCrypto.URandom().secureToken
-                
-                let json = JSON(["token": token.makeNode(), "secret": secret.makeNode(), "userId": id])
-                let _ = try User.setSession(json: json, req: req)
-                return try Response(status: .ok, json: json)
-            }
-        } else {
-            return try Response(status: .unauthorized, json: JSON(["error":true, "message": "Invalid credentials"]))
-        }
-    }
-    
-    
-    /// Login from the frontend
-    ///
-    /// - Parameters:
-    ///   - data: A Node with the req data
-    ///   - req: The request object
-    /// - Returns: A `Response` that redirects the user
-    /// - Throws: An Abort Error
-    static func loginFrontend(data: Node, req: Request) throws -> Response {
-        let apiLoginResponse = try loginAPI(data: data, req: req)
-        if apiLoginResponse.status == .ok {
-            guard let token = apiLoginResponse.json?["token"]?.string else { throw Abort.badRequest }
-            guard let secret = apiLoginResponse.json?["secret"]?.string else { throw Abort.badRequest }
-            guard let userId = apiLoginResponse.json?["userId"]?.int else { throw Abort.badRequest }
-            
-            let json = JSON(["secret": secret.makeNode(), "token": token.makeNode(), "userId": try userId.makeNode()])
-            let _ = try User.setSession(json: json, req: req)
-            
-            return Response(redirect: "home").flash(.success, "Successfully logged in")
-        } else if apiLoginResponse.status == .unauthorized {
-            return Response(redirect: "login").flash(.error, "Invalid Credentials")
-        } else {
-            return Response(redirect: "login").flash(.error, "Something went wrong")
-        }
-    }
-    
-    /// Register a new user from the API
-    ///
-    /// - Parameter data: A Node with the req data
-    /// - Returns: A `Response` with detailed JSON on the result
-    /// - Throws: An Abort Error
-    static func registerAPI(data: Node, req: Request) throws -> Response {
-        guard let name = data["name"]?.string else { throw Abort.custom(status: .badRequest, message: "'name' must be included") }
-        guard let email = data["email"]?.string else { throw Abort.custom(status: .badRequest, message: "'email' must be included") }
-        guard let password = data["password"]?.string else { throw Abort.custom(status: .badRequest, message: "'password' must be included") }
-        
-        let usersReturned = try User.query().filter("email", email).all()
-        if usersReturned.isEmpty {
-            var user = User(name: name, email: email, password: password)
-            try user.save()
-            
-            let secret = TurnstileCrypto.URandom().secureToken
-            let token = TurnstileCrypto.URandom().secureToken
-            let sessionJson = JSON(["secret": secret.makeNode(), "token": token.makeNode(), "userId": user.id!])
-            let _ = try User.setSession(json: sessionJson, req: req)
-            
-            let json = JSON(["name": .string(name), "email": .string(email), "token": .string(token), "secret": .string(secret), "userId": user.id!])
-            return try Response(status: .ok, json: json)
-        } else {
-            throw Abort.custom(status: .badRequest, message: "Email is already registered")
-        }
-    }
-    
-    static func registerFromView(req: Request) throws -> Response {
-        guard let form = req.formURLEncoded else { throw Abort.badRequest }
-        guard let name = form["name"]?.string else { throw Abort.badRequest }
-        guard let email = form["email"]?.string else { throw Abort.badRequest }
-        guard let password = form["password"]?.string else { throw Abort.badRequest }
-        guard let confirmPassword = form["confirm_password"]?.string else { throw Abort.badRequest }
-        
-        if password != confirmPassword {
-            return Response(redirect: "register").flash(.error, "Passwords don't match")
-        }
-        
-        let json = JSON(["name": name.makeNode(), "email": email.makeNode(), "password": password.makeNode()])
-        
-        do {
-            let registerResult = try User.registerAPI(data: json.makeNode(), req: req)
-            let sessionResult = try User.setSession(json: registerResult.json!, req: req)
-            if sessionResult {
-                return Response(redirect: "home")
-            } else {
-                return Response(redirect: "register").flash(.error, "Something went wrong. Please try again")
-            }
-        } catch {
-            return Response(redirect: "register").flash(.error, "Email is taken")
-        }
-    }
-    
-    /// Logouts the user from the API
-    ///
-    /// - Returns: A response with JSON
-    /// - Throws: An Abort Error
-    func logout(req: Request) throws -> Response {
+    func logout(req: Request) throws {
+        try req.auth.logout()
         try req.session().destroy()
-        return try Response(status: .ok, json: JSON(["success":true]))
     }
 }
 
@@ -200,4 +80,123 @@ extension User: Preparation {
     
     static func revert(_ database: Database) throws {
     }
+}
+
+extension User: Auth.User {
+    
+    convenience init(credentials: UserCredentials) throws {
+        self.init(name: credentials.name, email: credentials.email, password: try BCrypt.digest(password: credentials.password))
+    }
+    
+    static func register(credentials: Credentials) throws -> Auth.User {
+        guard let emailPassword = credentials as? UserCredentials else {
+            throw Abort.custom(status: .forbidden, message: "Unsupported credentials type \(type(of: credentials))")
+        }
+        
+        let usersForEmail = try User.query().filter("email", emailPassword.email).all()
+        if usersForEmail.count != 0 {
+            throw RegistrationError.emailTaken
+        }
+        
+        let user = try User(credentials: emailPassword)
+        return user
+    }
+    
+    static func authenticate(credentials: Credentials) throws -> Auth.User {
+        switch credentials {
+        case let emailPassword as UserLoginCredentials:
+            guard let user = try User.query().filter("email", emailPassword.email).first() else {
+                throw Abort.custom(status: .networkAuthenticationRequired, message: "Invalid email or password")
+            }
+            
+            if try BCrypt.verify(password: emailPassword.password, matchesHash: user.password) {
+                return user
+            } else {
+                throw Abort.custom(status: .networkAuthenticationRequired, message: "Invalid email or password")
+            }
+        case let id as Identifier:
+            guard let user = try User.find(id.id) else {
+                throw Abort.custom(status: .forbidden, message: "Invalid user identifier")
+            }
+            
+            return user
+        case let api as AccessToken:
+            guard let token = try Token.query().filter("token", api.string).first() else {
+                throw Abort.custom(status: .forbidden, message: "Invalid token")
+            }
+            
+            guard let user = try User.find(token.user_id) else {
+                throw Abort.custom(status: .forbidden, message: "Invalid user identifier")
+            }
+            
+            return user
+        default:
+            throw Abort.custom(status: .forbidden, message: "Unsupported credentials type \(type(of: credentials))")
+        }
+    }
+}
+
+extension User {
+    func tokens() throws -> [Token] {
+        return try children("user_id", Token.self).all()
+    }
+}
+
+struct UserCredentials: Credentials {
+    var email: String
+    var name: String
+    var password: String
+    
+    init(email: String, name: String, password: String) {
+        self.email = email
+        self.name = name
+        self.password = password
+    }
+    
+    init(json: JSON) throws {
+        guard let email = json["email"]?.string else { throw Abort.custom(status: .badRequest, message: "Email must be included") }
+        guard let name = json["name"]?.string else { throw Abort.custom(status: .badRequest, message: "Name must be included") }
+        guard let password = json["password"]?.string else { throw Abort.custom(status: .badRequest, message: "Password must be included") }
+        self.init(email: email, name: name, password: password)
+    }
+}
+
+struct UserLoginCredentials: Credentials {
+    var email: String
+    var password: String
+    
+    init(email: String, password: String) {
+        self.email = email
+        self.password = password
+    }
+    
+    init(json: JSON) throws {
+        guard let email = json["email"]?.string else { throw Abort.custom(status: .badRequest, message: "Email must be included") }
+        guard let password = json["password"]?.string else { throw Abort.custom(status: .badRequest, message: "Password must be included") }
+        self.init(email: email, password: password)
+    }
+}
+
+extension Request {
+    func user() throws -> User {
+        //check to see if it's coming in via an API route
+        if uri.description.contains("api/v") {
+            guard let APIKey = auth.header?.bearer else { throw Abort.custom(status: .forbidden, message: "Not authorized.") }
+            guard let user = try User.authenticate(credentials: APIKey) as? User else { throw Abort.custom(status: .unauthorized, message: "Incorrect key information") }
+            return user
+        } else {
+            guard let user = try auth.user() as? User else { throw Abort.custom(status: .badRequest, message: "Invalid user type.") }
+            return user
+        }
+    }
+}
+
+struct UserContext: Context {
+    var token: String
+}
+
+struct SessionContext: Context { }
+
+enum RegistrationError: Error {
+    case emailTaken
 }
