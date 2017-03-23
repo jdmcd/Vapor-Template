@@ -21,4 +21,3 @@ let package = Package(
         "Resources"
     ]
 )
-
