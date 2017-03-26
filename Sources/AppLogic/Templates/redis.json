@@ -1,0 +1,4 @@
+{
+    "address": "REDIS_ADDRESS",
+    "port": REDIS_PORT
+}
