@@ -1,7 +1,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "CHANGEME",
+    name: "PROJECT_NAME",
     targets: [
         Target(name: "App", dependencies: ["AppLogic"])
     ],
