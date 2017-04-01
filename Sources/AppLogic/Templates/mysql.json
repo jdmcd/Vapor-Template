@@ -3,5 +3,5 @@
   "password": "MYSQL_PASSWORD",
   "host": "MYSQL_HOST",
   "port": "MYSQL_PORT",
-  "database": "MYSQL_DATABASE",
+  "database": "MYSQL_DATABASE"
 }
