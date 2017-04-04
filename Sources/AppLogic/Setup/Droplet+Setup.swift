@@ -54,7 +54,7 @@ public func load(_ drop: Droplet) throws {
     
     
     //Auth Middleware
-    let auth = AuthMiddleware(user: User.self, cache: redisCache) { value in
+    let auth = AuthMiddleware(user: User.self, cache: redisCache, refreshCookieEveryRequest: true) { value in
         return Cookie(
             name: "vapor-auth",
             value: value,
