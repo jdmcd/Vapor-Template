@@ -33,4 +33,4 @@ nv () {
 So now I just call `nv HelloWorld`, and it creates it using the template. Before running this template in development mode, you need to add a `secrets` folder to the `Config` directory that has a `mysql.json` file and a `redis.json` file.
 
 # Command Line Tool
-I am currently working on a command line tool that will automate the setup the template, as well as renaming the hardcoded "CHANGEME" in `Package.swift`, and automatically fills in MySQL and Redis credentials. Stay tuned.
+Check out https://github.com/mcdappdev/vaporize to automate the creation of this template.
