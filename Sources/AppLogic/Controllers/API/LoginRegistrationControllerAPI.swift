@@ -23,14 +23,11 @@ final class LoginRegistrationControllerAPI {
         }
         
         guard let json = req.json else { throw Abort.badRequest }
-        let loginCredentials = try UserLoginCredentials(json: JSON(node: json))
         let credentials = try UserCredentials(json: json)
         
         guard var user = try User.register(credentials: credentials) as? User else { throw Abort.badRequest }
         try user.save()
         try user.setSession(req: req)
-        
-        try req.auth.login(loginCredentials, persist: true)
         
         var newToken = Token(user_id: user.id!.int!)
         try newToken.save()
@@ -45,9 +42,10 @@ final class LoginRegistrationControllerAPI {
         
         guard let json = req.json else { throw Abort.badRequest }
         let credentials = try UserLoginCredentials(json: json)
+        guard let user = try User.authenticate(credentials: credentials) as? User else {
+            throw Abort.badRequest
+        }
         
-        try req.auth.login(credentials, persist: true)
-        guard let user = try req.auth.user() as? User else { throw Abort.serverError }
         try user.setSession(req: req)
         
         let tokensAlreadyActive = try Token.query().filter("user_id", user.id!.int!).all()
