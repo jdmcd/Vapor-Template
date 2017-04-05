@@ -77,7 +77,8 @@ extension User: Preparation {
             users.bool("admin")
         })
         
-        let user = User(name: "Admin", email: "admin@admin.com", password: "admin", admin: true)
+        let hashedPassword = try BCrypt.digest(password: "admin")
+        let user = User(name: "Admin", email: "admin@admin.com", password: hashedPassword, admin: true)
         try database.seed([user])
     }
     
