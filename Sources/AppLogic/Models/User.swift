@@ -13,11 +13,11 @@ final class User: Model {
     
     var exists: Bool = false
     
-    init(name: String, email: String, password: String) {
+    init(name: String, email: String, password: String, admin: Bool = false) {
         self.name = name
         self.email = email
         self.password = password
-        self.admin = false
+        self.admin = admin
     }
     
     init(node: Node, in context: Context) throws {
@@ -76,6 +76,9 @@ extension User: Preparation {
             users.string("password", length: 255, optional: false)
             users.bool("admin")
         })
+        
+        let user = User(name: "Admin", email: "admin@admin.com", password: "admin", admin: true)
+        try database.seed([user])
     }
     
     static func revert(_ database: Database) throws {
