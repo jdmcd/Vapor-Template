@@ -1,3 +1,13 @@
-#embed("Views/head")
-#embed("Body/login")
-#embed("Views/footer")
+#extend("Views/base")
+#export("title") { Login }
+
+#export("html") {
+  <body>
+    #embed("Views/errors")
+    <form method="post" action="login">
+      <input type="email" name="email" required>
+      <input type="password" name="password" required>
+      <input type="Submit" value="Login">
+    </form>
+  </body>
+}
