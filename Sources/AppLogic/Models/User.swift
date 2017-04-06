@@ -77,9 +77,12 @@ extension User: Preparation {
             users.bool("admin")
         })
         
-        let hashedPassword = try BCrypt.digest(password: "admin")
-        let user = User(name: "Admin", email: "admin@admin.com", password: hashedPassword, admin: true)
-        try database.seed([user])
+        let env = CommandLine.environment ?? .development
+        if env != .production {
+            let hashedPassword = try BCrypt.digest(password: "admin")
+            let user = User(name: "Admin", email: "admin@admin.com", password: hashedPassword, admin: true)
+            try database.seed([user])
+        }
     }
     
     static func revert(_ database: Database) throws {
