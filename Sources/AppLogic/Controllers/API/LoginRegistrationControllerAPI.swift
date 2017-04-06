@@ -3,8 +3,13 @@ import HTTP
 import Auth
 
 final class LoginRegistrationControllerAPI {
-    func addRoutes(to drop: Droplet) {
-        
+    private let drop: Droplet
+    
+    init(drop: Droplet) {
+        self.drop = drop
+    }
+    
+    func addRoutes() {
         drop.grouped("api/v1").group("user") { grouped in
             //the authed routes - User controller, and the logout route
             grouped.group(AuthedMiddleware(isAPI: true)) { authed in
