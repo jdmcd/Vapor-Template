@@ -1,5 +1,4 @@
 {
-    "address": "INSERT",
-    "port": 0,
-    "password": "INSERT"
+    "url": "$REDIS_URL",
+    "encoding": "utf8"
 }
