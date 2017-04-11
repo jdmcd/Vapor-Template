@@ -15,10 +15,8 @@ public func load(_ drop: Droplet) throws {
     drop.middleware.append(securityHeaders)
     drop.middleware.append(FlashMiddleware())
     
-    
-    //Preparations
-    drop.preparations.append(User.self)
-    drop.preparations.append(Token.self)
+    //Register preparations
+    registerPreparations(drop)
     
     
     //Providers
