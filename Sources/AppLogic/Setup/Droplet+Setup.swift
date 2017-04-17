@@ -58,7 +58,7 @@ public func load(_ drop: Droplet) throws {
             value: value,
             expires: Date().addingTimeInterval(60 * 60 * 24 * 7), // 7 days
             secure: false,
-            httpOnly: false
+            httpOnly: true
         )
     }
     
