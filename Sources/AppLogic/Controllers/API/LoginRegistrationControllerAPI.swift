@@ -30,14 +30,18 @@ final class LoginRegistrationControllerAPI {
         guard let json = req.json else { throw Abort.badRequest }
         let credentials = try UserCredentials(json: json)
         
-        guard var user = try User.register(credentials: credentials) as? User else { throw Abort.badRequest }
-        try user.save()
-        try user.setSession(req: req)
-        
-        var newToken = Token(user_id: user.id!.int!)
-        try newToken.save()
-        
-        return try JSON(node: try user.makeNode(context: UserContext(token: newToken.token)))
+        do {
+            guard var user = try User.register(credentials: credentials) as? User else { throw Abort.badRequest }
+            try user.save()
+            try user.setSession(req: req)
+            
+            var newToken = Token(user_id: user.id!.int!)
+            try newToken.save()
+            
+            return try JSON(node: try user.makeNode(context: UserContext(token: newToken.token)))
+        } catch RegistrationError.emailTaken {
+            return try Response(status: .badRequest, json: JSON(node: ["error": .string("email taken")]))
+        }
     }
     
     func login(_ req: Request) throws -> ResponseRepresentable {
