@@ -100,8 +100,8 @@ extension User: Auth.User {
             throw Abort.custom(status: .forbidden, message: "Unsupported credentials type \(type(of: credentials))")
         }
         
-        let usersForEmail = try User.query().filter("email", emailPassword.email).all()
-        if usersForEmail.count != 0 {
+        let usersForEmailCount = try User.query().filter("email", emailPassword.email).count()
+        if usersForEmailCount != 0 {
             throw RegistrationError.emailTaken
         }
         
