@@ -1,4 +1,0 @@
-{
-    "url": "$REDIS_URL",
-    "encoding": "utf8"
-}
