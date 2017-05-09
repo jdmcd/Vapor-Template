@@ -1,1 +1,1 @@
-web: App --env=production --workdir="./" --config:mysql.url=$JAWSDB_URL --config:mysql.encoding=utf8 --config:redis.url=$REDIS_URL --config:redis.encoding=utf8
+web: App --env=production --workdir="./" --config:mysql.url=$JAWSDB_URL --config:mysql.encoding=utf8 --config:redis.url=$REDISCLOUD_URL --config:redis.encoding=utf8
