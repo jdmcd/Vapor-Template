@@ -32,12 +32,12 @@ class UserTests: XCTestCase {
     }
     
     func createUserNative() throws {
-        var newUser = User(name: UserTests.name, email: UserTests.email, password: UserTests.password)
+        let hashedPassword = BCrypt.hash(password: UserTests.password)
+        var newUser = User(name: UserTests.name, email: UserTests.email, password: hashedPassword, profileUrl: "")
         try newUser.save()
         
         XCTAssertEqual(newUser.name, UserTests.name)
         XCTAssertEqual(newUser.email, UserTests.email)
-        XCTAssertEqual(newUser.password, UserTests.password)
         
         //check for BCrypt success
         guard let fetchedUser = try User.find(newUser.id!) else { XCTFail("Couldn't find user"); return }
