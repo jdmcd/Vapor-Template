@@ -26,10 +26,10 @@ public func load(_ drop: Droplet) throws {
 
     //Redis setup
     guard let config = drop.config["redis"] else { throw Abort.badRequest }
-    guard let address = config["address"]?.string else { throw Abort.badRequest }
-    guard let port = config["port"]?.int else { throw Abort.badRequest }
-    let password = config["password"]?.string
-    let redisCache = try RedisCache(address: address, port: port, password: password)
+    guard let url = config["url"]?.string else { throw Abort.badRequest }
+    
+    let uri = try URIParser.parse(bytes: url.bytes)
+    let redisCache = try RedisCache(address: uri.host, port: uri.port ?? 6379, password: uri.userInfo?.info)
     
     drop.cache = redisCache
     
