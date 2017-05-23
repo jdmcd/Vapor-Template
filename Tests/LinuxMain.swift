@@ -5,7 +5,8 @@ import XCTest
 
 XCTMain([
     testCase(LoginTests.allTests),
-    testCase(RegistrationTests.allTests)
+    testCase(RegistrationTests.allTests),
+    testCase(MeTests.allTests)
 ])
 
 #endif
