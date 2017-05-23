@@ -11,7 +11,7 @@ final class LoginViewController: RouteCollection {
     
     func build(_ builder: RouteBuilder) throws {
         builder.group(FlashMiddleware()) { build in
-            
+        
             //Login
             build.group(RedirectMiddleware()) { redirect in
                 redirect.get("/login", handler: login)
@@ -27,6 +27,7 @@ final class LoginViewController: RouteCollection {
     
     //MARK: - GET /login
     func login(_ req: Request) throws -> ResponseRepresentable {
+        print(try req.assertSession().identifier)
         return try view.make("login", for: req)
     }
     

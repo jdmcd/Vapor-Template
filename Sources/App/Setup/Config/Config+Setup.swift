@@ -32,17 +32,15 @@ extension Config {
         let uri = URIParser().parse(bytes: url.bytes)
         let redisCache = try RedisCache(hostname: uri.hostname, port: uri.port ?? 6379, password: uri.userInfo?.info)
         
-//        let redisSessions = SessionsMiddleware(CacheSessions(redisCache)) { req -> Cookie in
-//            return Cookie(
-//                name: "vapor-auth",
-//                value: "",
-//                expires: Date().addingTimeInterval(60 * 60 * 24 * 7), // 7 days
-//                secure: false,
-//                httpOnly: true
-//            )
-//        }
-
-        let redisSessions = SessionsMiddleware(CacheSessions(redisCache))
+        let redisSessions = SessionsMiddleware(CacheSessions(redisCache)) { req -> Cookie in
+            return Cookie(
+                name: "vapor-session",
+                value: "",
+                expires: Date().addingTimeInterval(60 * 60 * 24 * 7), // 7 days
+                secure: false,
+                httpOnly: true
+            )
+        }
         
         let persistMiddleware = PersistMiddleware(User.self)
         
