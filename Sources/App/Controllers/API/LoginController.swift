@@ -6,8 +6,8 @@ import MySQL
 
 final class LoginController: RouteCollection {
     func build(_ builder: RouteBuilder) throws {
-        builder.version() { grouped in
-            grouped.post("login", handler: login)
+        builder.version() { build in
+            build.post("login", handler: login)
         }
     }
     

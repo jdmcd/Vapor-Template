@@ -6,8 +6,8 @@ import MySQL
 
 final class RegisterController: RouteCollection {
     func build(_ builder: RouteBuilder) throws {
-        builder.version() { grouped in
-            grouped.post("register", handler: register)
+        builder.version() { build in
+            build.post("register", handler: register)
         }
     }
     
