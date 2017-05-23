@@ -8,6 +8,7 @@ import VaporSecurityHeaders
 import Auth
 import Cookies
 import Flash
+import URI
 
 public func load(_ drop: Droplet) throws {
     //Flash and security middleware
