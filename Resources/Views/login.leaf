@@ -4,9 +4,9 @@
 #export("html") {
   <body>
     #embed("Views/errors")
-    <form method="post" action="login">
-      <input type="email" name="email" required>
-      <input type="password" name="password" required>
+    <form method="post" action="/login">
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password" required>
       <input type="Submit" value="Login">
     </form>
   </body>
