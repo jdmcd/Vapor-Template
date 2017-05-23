@@ -9,10 +9,13 @@ extension Droplet {
     static func testable() throws -> Droplet {
         let config = try Config(arguments: ["vapor", "--env=test"])
         try config.setup()
+        
         let drop = try Droplet(config)
         try drop.setup()
+        
         return drop
     }
+    
     func serveInBackground() throws {
         background {
             try! self.run()
