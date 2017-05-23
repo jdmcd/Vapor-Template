@@ -22,6 +22,11 @@ final class LoginController: RouteCollection {
         guard let user = try User.makeQuery().filter("email", email).first() else { throw invalidCredentials }
         
         if try BCryptHasher().verify(password: password, matches: user.password) {
+            if try user.token() == nil {
+                let newToken = Token(token: UUID().uuidString, user_id: user.id!)
+                try newToken.save()
+            }
+            
             return try user.makeJSON()
         } else {
             throw invalidCredentials
