@@ -31,5 +31,7 @@ nv () {
 
 So now I just call `nv HelloWorld`, and it creates it using the template. Before running this template in development mode, you need to add a `secrets` folder to the `Config` directory that has a `mysql.json` file and a `redis.json` file.
 
+Please note that using this template is **exponentially** easier and faster if you use Vaporize. See below.
+
 # Command Line Tool
 Check out https://github.com/mcdappdev/vaporize to automate the creation of this template.
