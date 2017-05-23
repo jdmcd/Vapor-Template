@@ -1,23 +1,35 @@
-<p align="center">
-    <img src="https://cloud.githubusercontent.com/assets/1342803/24797159/52fb0d88-1b90-11e7-85a5-359fff0496a4.png" width="320" alt="MySQL">
-    <br>
-    <br>
-    <a href="http://beta.docs.vapor.codes/getting-started/hello-world/">
-        <img src="http://img.shields.io/badge/read_the-docs-92A8D1.svg" alt="Documentation">
-    </a>
-    <a href="http://vapor.team">
-        <img src="http://vapor.team/badge.svg" alt="Slack Team">
-    </a>
-    <a href="LICENSE">
-        <img src="http://img.shields.io/badge/license-MIT-brightgreen.svg" alt="MIT License">
-    </a>
-    <a href="https://circleci.com/gh/vapor/mysql">
-        <img src="https://circleci.com/gh/vapor/mysql.svg?style=shield" alt="Continuous Integration">
-    </a>
-    <a href="https://travis-ci.org/vapor/api-template">
-    	<img src="https://travis-ci.org/vapor/api-template.svg?branch=master" alt="Build Status">
-    </a>
-    <a href="https://swift.org">
-        <img src="http://img.shields.io/badge/swift-3.1-brightgreen.svg" alt="Swift 3.1">
-    </a>
-</center>
+# Vapor-Template
+A starting point for all of my Vapor projects
+
+You are welcome to use this for your projects as well. It is already setup for MySQL and Redis use, and comes with `User` and `Token` classes preinstalled. You can modify it to how you see fit, but I've found that this setup works really well for me.
+
+# Features
+The template comes with the following features:
+
+* Implementation of the `Auth` class, for both the frontend and an API component
+* Usage of `Bearer` for authentication based off of the `Token` class
+* Redis to manage the caching of session tokens
+* Node's Flash library
+* Views and routes split up into controllers
+* Testing (Ongoing)
+* Custom middleware
+
+# Redis
+Please follow the Vapor instructions for setting up Redis. You need to have the local server running for the app to even start
+
+# Deployment
+You can deploy this template to Heroku really easily (either use the CLI or the online GUI). It's already setup to work with JawsDB MySQL. You'll need to hardcode your Redis keys into the production file, at this time.
+
+# Vapor Usage
+To clone this template to a new Vapor project, do this: `vapor new HelloWorld --template=https://github.com/mcdappdev/Vapor-Template` This is a little wordy and annoying to type out, so I added the following function to my `.zshrc` file:
+
+```bash
+nv () {
+    vapor new $1 --template=https://github.com/mcdappdev/Vapor-Template
+}
+```
+
+So now I just call `nv HelloWorld`, and it creates it using the template. Before running this template in development mode, you need to add a `secrets` folder to the `Config` directory that has a `mysql.json` file and a `redis.json` file.
+
+# Command Line Tool
+Check out https://github.com/mcdappdev/vaporize to automate the creation of this template.
