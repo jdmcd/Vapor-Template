@@ -35,3 +35,96 @@ Please note that using this template is **exponentially** easier and faster if y
 
 # Command Line Tool
 Check out https://github.com/mcdappdev/vaporize to automate the creation of this template.
+
+# Available Endpoints
+
+All API endpoints are hosted at /api/v1/
+
+**POST:**
+```
+/register
+```
+
+**Body:**
+```json
+{
+    "name": "Person's name",
+    "email": "email@email.com",
+    "password": "inputtedPassword"
+}
+```
+
+**Response:**
+```json
+{
+  "admin": false,
+  "email": "email@email.com",
+  "id": 2,
+  "name": "Person's name",
+  "token": "53i8yqt8ap0pEJJ9E0FnPQ"
+}
+```
+
+**Status Codes**
+* `200` user returned and saved
+* `400` incorrect data in request, or email already taken
+* `500` internal error
+
+
+**POST:**
+```
+/login
+```
+
+**Body:**
+```json
+{
+    "email": "email@email.com",
+    "password": "inputtedPassword"
+}
+```
+
+**Response:**
+```json
+{
+  "admin": false,
+  "email": "email@email.com",
+  "id": 2,
+  "name": "Person's name",
+  "token": "53i8yqt8ap0pEJJ9E0FnPQ"
+}
+```
+
+**Status Codes**
+* `200` user returned
+* `403` invalid credentials
+* `500` internal error
+
+
+**GET:**
+```
+/me
+```
+
+**Headers:**
+```json
+{
+    "Authorization": "Bearer YOUR_TOKEN_HERE"
+}
+```
+
+**Response:**
+```json
+{
+  "admin": false,
+  "email": "email@email.com",
+  "id": 2,
+  "name": "Person's name",
+  "token": "53i8yqt8ap0pEJJ9E0FnPQ"
+}
+```
+
+**Status Codes**
+* `200` user returned
+* `403` invalid credentials
+* `500` internal error
