@@ -21,7 +21,7 @@ Please follow the Vapor instructions for setting up Redis. You need to have the 
 You can deploy this template to Heroku really easily (either use the CLI or the online GUI). It's already setup to work with JawsDB MySQL. You'll need to hardcode your Redis keys into the production file, at this time.
 
 # Vapor Usage
-To clone this template to a new Vapor project, do this: `vapor new HelloWorld --template=https://github.com/mcdappdev/Vapor-Template` This is a little wordy and annoying to type out, so I added the following function to my `.zshrc` file:
+To clone this template to a new Vapor project, do this: `vapor new MyProject --template=mcdappdev/vapor-template` This is a little wordy and annoying to type out, so I added the following function to my `.zshrc` file:
 
 ```bash
 nv () {
