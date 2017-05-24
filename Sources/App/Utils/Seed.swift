@@ -3,10 +3,11 @@ import Fluent
 
 extension Database {
     func seed<T: Entity>(_ objects: [T]) throws {
-        let query = try T.makeQuery(self)
-        
-        try objects.forEach {
-            try query.save($0)
+        try transaction { conn in
+            try objects.forEach {
+                let query = try T.makeQuery(conn)
+                try query.save($0)
+            }
         }
     }
     
