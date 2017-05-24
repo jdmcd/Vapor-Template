@@ -29,8 +29,8 @@ class MeTests: TestCase {
             .assertStatus(is: .ok)
             .assertJSON("id", passes: { json in json.int != nil })
             .assertJSON("token", passes: { json in json.string != nil })
-            .assertJSON("name", passes: { json in json.string == userJson["name"]?.string })
-            .assertJSON("email", passes: { json in json.string == userJson["email"]?.string })
+            .assertJSON("name", equals: userJson["name"]?.string)
+            .assertJSON("email", equals: userJson["email"]?.string)
             .assertJSON("password", passes: { json in json.string == nil })
     }
     

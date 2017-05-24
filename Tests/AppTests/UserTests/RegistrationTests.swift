@@ -91,8 +91,8 @@ class RegistrationTests: TestCase {
             .assertStatus(is: .ok)
             .assertJSON("id", passes: { json in json.int != nil })
             .assertJSON("token", passes: { json in json.string != nil })
-            .assertJSON("name", passes: { json in json.string == "name" })
-            .assertJSON("email", passes: { json in json.string == "email@email.com" })
+            .assertJSON("name", equals: "name")
+            .assertJSON("email", equals: "email@email.com")
             .assertJSON("password", passes: { json in json.string == nil })
     }
 }

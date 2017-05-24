@@ -99,8 +99,8 @@ class LoginTests: TestCase {
             .assertStatus(is: .ok)
             .assertJSON("id", passes: { json in json.int != nil })
             .assertJSON("token", passes: { json in json.string != nil })
-            .assertJSON("name", passes: { json in json.string == registerName })
-            .assertJSON("email", passes: { json in json.string == email })
+            .assertJSON("name", equals: registerName)
+            .assertJSON("email", equals: email)
             .assertJSON("password", passes: { json in json.string == nil })
     }
 }
