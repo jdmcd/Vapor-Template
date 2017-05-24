@@ -8,7 +8,6 @@
 *.xcworkspacedata
 
 /Config/development/
-/Config/test/
 
 # Flock
 .flock/.build
