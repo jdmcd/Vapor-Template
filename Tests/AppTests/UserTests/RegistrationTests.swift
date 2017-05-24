@@ -55,6 +55,18 @@ class RegistrationTests: TestCase {
         try failAgainstData(body: body)
     }
     
+    func testInvalidEmail() throws {
+        var json = JSON()
+        
+        try json.set("name", "name")
+        try json.set("email", "INVALIDEMAIL")
+        try json.set("password", "password")
+        
+        let body = try Body(json)
+        
+        try failAgainstData(body: body)
+    }
+    
     //MARK: - failAgainstData
     private func failAgainstData(body: Body) throws {
         let request = Request(method: .post,
@@ -90,6 +102,7 @@ extension RegistrationTests {
     static let allTests = [
         ("testRegister", testRegister),
         ("testFailedRegister", testFailedRegister),
-        ("testDuplicateEmail", testDuplicateEmail)
+        ("testDuplicateEmail", testDuplicateEmail),
+        ("testInvalidEmail", testInvalidEmail)
     ]
 }

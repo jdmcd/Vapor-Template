@@ -1,6 +1,7 @@
 import Vapor
 import FluentProvider
 import AuthProvider
+import Validation
 
 final class User: Model {
     var storage = Storage()
@@ -10,16 +11,19 @@ final class User: Model {
     let password: String
     let admin: Bool
     
-    init(name: String, email: String, password: String, admin: Bool = false) {
+    init(name: String, email: String, password: String, admin: Bool = false) throws {
         self.name = name
-        self.email = email
+        self.email = try email.tested(by: EmailValidator())
         self.password = password
         self.admin = admin
     }
     
     init(row: Row) throws {
         name = try row.get("name")
-        email = try row.get("email")
+        
+        let email: String = try row.get("email")
+        self.email = try email.tested(by: EmailValidator())
+        
         password = try row.get("password")
         admin = try row.get("admin") ?? false
     }
@@ -37,7 +41,10 @@ final class User: Model {
     
     init(json: JSON) throws {
         name = try json.get("name")
-        email = try json.get("email")
+        
+        let email: String = try json.get("email")
+        self.email = try email.tested(by: EmailValidator())
+        
         password = try json.get("password")
         admin = try json.get("admin") ?? false
     }

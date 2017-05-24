@@ -2,6 +2,7 @@ import Vapor
 import BCrypt
 import Flash
 import MySQL
+import Validation
 
 final class RegisterViewController: RouteCollection {
     private let view: ViewRenderer
@@ -42,6 +43,8 @@ final class RegisterViewController: RouteCollection {
             return Response("/home")
         } catch is MySQLError {
             return Response("/register").flash(.error, "Email already exists")
+        } catch is ValidationError {
+            return Response("/register").flash(.error, "Email format is invalid")
         } catch {
             return Response("/register").flash(.error, "Something went wrong")
         }

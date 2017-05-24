@@ -52,7 +52,7 @@ class LoginTests: TestCase {
     }
     
     func testTokenDoesNotExistOnLogin() throws {
-        let newUser = User(name: registerName, email: email, password: try BCryptHasher().make(password.makeBytes()).makeString())
+        let newUser = try User(name: registerName, email: email, password: try BCryptHasher().make(password.makeBytes()).makeString())
         try newUser.save()
         
         var json = JSON()
