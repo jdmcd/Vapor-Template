@@ -7,7 +7,8 @@
 *.xcuserstate
 *.xcworkspacedata
 
-/Config/secrets/
+/Config/development/
+/Config/test/
 
 # Flock
 .flock/.build
