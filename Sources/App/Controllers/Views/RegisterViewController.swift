@@ -12,7 +12,7 @@ final class RegisterViewController: RouteCollection {
     }
     
     func build(_ builder: RouteBuilder) throws {
-        builder.grouped(FlashMiddleware()).group(RedirectMiddleware()) { build in
+        builder.frontend(.noAuthed).group(RedirectMiddleware()) { build in
             build.get("/register", handler: register)
             build.post("/register", handler: handleRegisterPost)
         }

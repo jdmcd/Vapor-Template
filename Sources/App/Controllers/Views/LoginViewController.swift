@@ -10,7 +10,7 @@ final class LoginViewController: RouteCollection {
     }
     
     func build(_ builder: RouteBuilder) throws {
-        builder.group(FlashMiddleware()) { build in
+        builder.frontend(.noAuthed) { build in
         
             //Login
             build.group(RedirectMiddleware()) { redirect in

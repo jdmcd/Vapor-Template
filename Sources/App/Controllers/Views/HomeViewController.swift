@@ -9,7 +9,7 @@ final class HomeViewController: RouteCollection {
     }
     
     func build(_ builder: RouteBuilder) throws {
-        builder.grouped(FlashMiddleware()).group(AuthedMiddleware()) { build in
+        builder.frontend() { build in
             build.get("/home", handler: home)
         }
     }
