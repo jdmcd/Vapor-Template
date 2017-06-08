@@ -11,7 +11,7 @@ final class LoginController: RouteCollection {
         }
     }
     
-    //POST: - /api/v1/login
+    //MARK: - POST /api/v1/login
     func login(_ req: Request) throws -> ResponseRepresentable {
         let invalidCredentials = Abort(.badRequest, reason: "Invalid credentials")
         

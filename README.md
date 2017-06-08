@@ -11,7 +11,7 @@ The template comes with the following features:
 * Redis to manage the caching of session tokens
 * Node's Flash library
 * Views and routes split up into controllers
-* Testing (Ongoing)
+* Full API Testing
 * Custom middleware
 
 # Redis
@@ -127,4 +127,41 @@ All API endpoints are hosted at /api/v1/
 **Status Codes**
 * `200` user returned
 * `403` invalid credentials
+* `500` internal error
+
+
+**PATCH:**
+```
+/me
+```
+
+**Headers:**
+```json
+{
+    "Authorization": "Bearer YOUR_TOKEN_HERE"
+}
+```
+
+**Body:**
+```json
+{
+  "name": "new name",
+  "email": "newemail@email.com"
+}
+```
+
+**Response:**
+```json
+{
+  "admin": false,
+  "email": "newemail@email.com",
+  "id": 2,
+  "name": "new name",
+  "token": "53i8yqt8ap0pEJJ9E0FnPQ"
+}
+```
+
+**Status Codes**
+* `200` user updated, returned
+* `400` email already taken 
 * `500` internal error

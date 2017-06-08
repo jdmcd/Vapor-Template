@@ -6,10 +6,10 @@ import Validation
 final class User: Model {
     var storage = Storage()
     
-    let name: String
-    let email: String
-    let password: String
-    let admin: Bool
+    var name: String
+    var email: String
+    var password: String
+    var admin: Bool
     
     init(name: String, email: String, password: String, admin: Bool = false) throws {
         self.name = name
