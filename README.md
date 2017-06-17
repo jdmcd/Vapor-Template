@@ -135,6 +135,8 @@ All API endpoints are hosted at /api/v1/
 /me
 ```
 
+Any combination of parameters can be passed into this function and all of them will be validated and updated, with the exception of `id`, `token` and `password`. `password` can be updated using the `/password` endpoint documented below.
+
 **Headers:**
 ```json
 {
@@ -164,4 +166,41 @@ All API endpoints are hosted at /api/v1/
 **Status Codes**
 * `200` user updated, returned
 * `400` email already taken 
+* `500` internal error
+
+
+**PATCH:**
+```
+/password
+```
+
+**Headers:**
+```json
+{
+    "Authorization": "Bearer YOUR_TOKEN_HERE"
+}
+```
+
+**Body:**
+```json
+{
+  "oldPassword": "old password",
+  "newPassword": "new password"
+}
+```
+
+**Response:**
+```json
+{
+  "admin": false,
+  "email": "newemail@email.com",
+  "id": 2,
+  "name": "new name",
+  "token": "53i8yqt8ap0pEJJ9E0FnPQ"
+}
+```
+
+**Status Codes**
+* `200` user updated, returned
+* `401` incorrect `oldPassword`
 * `500` internal error
