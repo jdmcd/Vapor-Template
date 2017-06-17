@@ -1,7 +1,7 @@
 {
-    "user": "",
+    "user": "root",
     "password": "",
-    "hostname": "",
+    "hostname": "localhost",
     "port": "",
-    "database": ""
+    "database": "vaportwo"
 }

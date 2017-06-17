@@ -9,6 +9,7 @@ final class MeController: RouteCollection {
         builder.versioned().group(TokenAuthenticationMiddleware(User.self)) { build in
             build.get("me", handler: me)
             build.patch("me", handler: updateMe)
+            build.patch("password", handler: updatePassword)
         }
     }
     
@@ -34,6 +35,24 @@ final class MeController: RouteCollection {
         }
         
         return try currentUser.makeJSON()
+    }
+    
+    //MARK: - PATCH /api/v1/password
+    func updatePassword(_ req: Request) throws -> ResponseRepresentable {
+        guard let json = req.json else { throw Abort(.badRequest, reason: "Invalid JSON") }
+        
+        let oldPassword: String = try json.get("oldPassword")
+        let newPassword: String = try json.get("newPassword")
+        let user = try req.user()
+        
+        if !(try BCryptHasher().verify(password: oldPassword.bytes, matches: user.password.bytes)) {
+            throw Abort(.unauthorized, reason: "Incorrect old password")
+        }
+        
+        user.password = try BCryptHasher().make(newPassword.bytes).makeString()
+        try user.save()
+        
+        return try user.makeJSON()
     }
 }
 

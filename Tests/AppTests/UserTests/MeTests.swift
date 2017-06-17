@@ -43,6 +43,63 @@ class MeTests: TestCase {
             .assertStatus(is: .forbidden)
     }
     
+    func testResetPasswordSuccess() throws {
+        guard let token = userJson["token"]?.string else { XCTFail(); return }
+        
+        var resetPasswordJson = JSON()
+        try resetPasswordJson.set("oldPassword", "password")
+        try resetPasswordJson.set("newPassword", "newpassword")
+        
+        let body = try Body(resetPasswordJson)
+        
+        let request = Request(method: .patch,
+                              uri: "/api/v1/password",
+                              headers: ["Content-Type": "application/json", "Authorization": "Bearer \(token)"],
+                              body: body)
+        
+        try drop.testResponse(to: request)
+            .assertStatus(is: .ok)
+            .assertJSON("id", passes: { json in json.int != nil })
+            .assertJSON("token", passes: { json in json.string != nil })
+        
+        //Lets try and login with the old password and make sure it fails
+        var loginJson = JSON()
+        try loginJson.set("email", "email@email.com")
+        try loginJson.set("password", "password")
+        
+        let loginBody = try Body(loginJson)
+        
+        let loginRequest = Request(method: .post,
+                              uri: "/api/v1/login",
+                              headers: ["Content-Type": "application/json"],
+                              body: loginBody)
+        
+        try drop.testResponse(to: loginRequest)
+            .assertStatus(is: .badRequest)
+            .assertJSON("id", passes: { json in json.int == nil })
+            .assertJSON("token", passes: { json in json.string == nil })
+    }
+    
+    func testResetPasswordWrongOldPassword() throws {
+        guard let token = userJson["token"]?.string else { XCTFail(); return }
+        
+        var resetPasswordJson = JSON()
+        try resetPasswordJson.set("oldPassword", "wrong password")
+        try resetPasswordJson.set("newPassword", "newpassword")
+        
+        let body = try Body(resetPasswordJson)
+        
+        let request = Request(method: .patch,
+                              uri: "/api/v1/password",
+                              headers: ["Content-Type": "application/json", "Authorization": "Bearer \(token)"],
+                              body: body)
+        
+        try drop.testResponse(to: request)
+            .assertStatus(is: .unauthorized)
+            .assertJSON("id", passes: { json in json.int == nil })
+            .assertJSON("token", passes: { json in json.string == nil })
+    }
+    
     //MARK: - createUser
     @discardableResult
     private func createUser() throws -> JSON? {
@@ -69,6 +126,8 @@ class MeTests: TestCase {
 extension MeTests {
     static let allTests = [
         ("testAuthorized", testAuthorized),
-        ("testNotAuthorized", testNotAuthorized)
+        ("testNotAuthorized", testNotAuthorized),
+        ("testResetPasswordSuccess", testResetPasswordSuccess),
+        ("testResetPasswordWrongOldPassword", testResetPasswordWrongOldPassword)
     ]
 }
