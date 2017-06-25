@@ -1,5 +1,6 @@
 import Routing
 import Flash
+import AuthProvider
 
 struct VersionRoute {
     static let path = "api/v1"
@@ -18,7 +19,8 @@ extension RouteBuilder {
 extension RouteBuilder {
     fileprivate func middleware(_ type: FrontendMiddlewareType) -> [Middleware] {
         var middleware: [Middleware] = [
-            FlashMiddleware()
+            FlashMiddleware(),
+            PersistMiddleware(User.self)
         ]
         
         if type == .all {

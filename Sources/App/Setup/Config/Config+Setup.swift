@@ -42,9 +42,6 @@ extension Config {
             )
         }
         
-        let persistMiddleware = PersistMiddleware(User.self)
-        
-        addConfigurable(middleware: persistMiddleware, name: "persist")
         addConfigurable(middleware: redisSessions, name: "redis")
     }
 }
