@@ -20,9 +20,9 @@ class RegistrationTests: TestCase {
     func testRegister() throws {
         var json = JSON()
         
-        try json.set("name", "name")
-        try json.set("email", "email@email.com")
-        try json.set("password", "password")
+        try json.set(User.Field.name, "name")
+        try json.set(User.Field.email, "email@email.com")
+        try json.set(User.Field.password, "password")
         
         let body = try Body(json)
         try createUserWithSuccess(body: body)
@@ -30,21 +30,21 @@ class RegistrationTests: TestCase {
     
     func testFailedRegister() throws {
         var json = JSON()
-        try json.set("name", "name")
+        try json.set(User.Field.name, "name")
         
         let body = try Body(json)
         try failAgainstData(body: body)
         
-        try json.set("email", "email@email.com")
+        try json.set(User.Field.email, "email@email.com")
         try failAgainstData(body: body)
     }
     
     func testDuplicateEmail() throws {
         var json = JSON()
         
-        try json.set("name", "name")
-        try json.set("email", "email@email.com")
-        try json.set("password", "password")
+        try json.set(User.Field.name, "name")
+        try json.set(User.Field.email, "email@email.com")
+        try json.set(User.Field.password, "password")
         
         let body = try Body(json)
         
@@ -58,9 +58,9 @@ class RegistrationTests: TestCase {
     func testInvalidEmail() throws {
         var json = JSON()
         
-        try json.set("name", "name")
-        try json.set("email", "INVALIDEMAIL")
-        try json.set("password", "password")
+        try json.set(User.Field.name, "name")
+        try json.set(User.Field.email, "INVALIDEMAIL")
+        try json.set(User.Field.password, "password")
         
         let body = try Body(json)
         

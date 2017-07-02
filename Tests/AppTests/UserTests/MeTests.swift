@@ -64,8 +64,8 @@ class MeTests: TestCase {
         
         //Lets try and login with the old password and make sure it fails
         var loginJson = JSON()
-        try loginJson.set("email", "email@email.com")
-        try loginJson.set("password", "password")
+        try loginJson.set(User.Field.email, "email@email.com")
+        try loginJson.set(User.Field.password, "password")
         
         let loginBody = try Body(loginJson)
         
@@ -105,9 +105,9 @@ class MeTests: TestCase {
     private func createUser() throws -> JSON? {
         var json = JSON()
         
-        try json.set("name", "name")
-        try json.set("email", "email@email.com")
-        try json.set("password", "password")
+        try json.set(User.Field.name, "name")
+        try json.set(User.Field.email, "email@email.com")
+        try json.set(User.Field.password, "password")
         
         let body = try Body(json)
         

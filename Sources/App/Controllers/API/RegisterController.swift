@@ -21,8 +21,10 @@ final class RegisterController: RouteCollection {
         }
         
         guard var json = req.json else { throw Abort.badRequest }
-        guard let password = json["password"]?.string else { throw Abort.badRequest }
-        try json.set("password", try BCryptHasher().make(password.bytes).makeString())
+        
+        //TODO: - Add generic subscript upon Swift 4
+        guard let password = json[User.Field.password.rawValue]?.string else { throw Abort.badRequest }
+        try json.set(User.Field.password, try BCryptHasher().make(password.bytes).makeString())
         
         var newUser: User!
         

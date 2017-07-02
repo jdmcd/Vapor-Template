@@ -23,8 +23,8 @@ final class MeController: RouteCollection {
         guard let json = req.json else { throw Abort.badRequest }
         
         let currentUser = try req.user()
-        currentUser.name = try json.get("name") ?? currentUser.name
-        currentUser.email = try json.get("email") ?? currentUser.email
+        currentUser.name = try json.get(User.Field.name) ?? currentUser.name
+        currentUser.email = try json.get(User.Field.email) ?? currentUser.email
         
         do {
             try currentUser.save()

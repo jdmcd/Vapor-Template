@@ -32,7 +32,7 @@ class SeedTests: TestCase {
         try SeedOneData.prepare(try drop.assertDatabase())
         XCTAssertEqual(try User.count(), 1)
         
-        guard let user = try User.makeQuery().filter("name", SeedTests.userName).first() else {
+        guard let user = try User.makeQuery().filter(User.Field.name, SeedTests.userName).first() else {
             XCTFail("User does not exist")
             return
         }
@@ -48,12 +48,12 @@ class SeedTests: TestCase {
         try SeedMultipleData.prepare(try drop.assertDatabase())
         XCTAssertEqual(try User.count(), 2)
         
-        guard let userOne = try User.makeQuery().filter("name", SeedTests.userName).first() else {
+        guard let userOne = try User.makeQuery().filter(User.Field.name, SeedTests.userName).first() else {
             XCTFail("User does not exist")
             return
         }
         
-        guard let userTwo = try User.makeQuery().filter("name", SeedTests.userTwoName).first() else {
+        guard let userTwo = try User.makeQuery().filter(User.Field.name, SeedTests.userTwoName).first() else {
             XCTFail("User does not exist")
             return
         }

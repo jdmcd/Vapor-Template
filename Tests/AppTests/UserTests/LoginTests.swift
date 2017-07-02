@@ -24,8 +24,8 @@ class LoginTests: TestCase {
         let userJson = try createUser()
         
         var newJson = JSON()
-        try newJson.set("email", userJson!["email"]?.string)
-        try newJson.set("password", password)
+        try newJson.set(User.Field.email, userJson!["email"]?.string)
+        try newJson.set(User.Field.password, password)
         
         let body = try Body(newJson)
         try loginUser(body: body)
@@ -35,8 +35,8 @@ class LoginTests: TestCase {
         try createUser()
         
         var newJson = JSON()
-        try newJson.set("email", "WRONG EMAIL")
-        try newJson.set("password", "WRONG PASSWORD")
+        try newJson.set(User.Field.email, "WRONG EMAIL")
+        try newJson.set(User.Field.password, "WRONG PASSWORD")
         
         let body = try Body(newJson)
         
@@ -57,14 +57,14 @@ class LoginTests: TestCase {
         
         var json = JSON()
         
-        try json.set("email", email)
-        try json.set("password", password)
+        try json.set(User.Field.email, email)
+        try json.set(User.Field.password, password)
         
-        XCTAssert(try Token.makeQuery().filter("user_id", newUser.id!).count() == 0)
+        XCTAssert(try Token.makeQuery().filter(Token.Field.user_id, newUser.id!).count() == 0)
         
         try loginUser(body: try Body(json))
         
-        XCTAssert(try Token.makeQuery().filter("user_id", newUser.id!).count() != 0)
+        XCTAssert(try Token.makeQuery().filter(Token.Field.user_id, newUser.id!).count() != 0)
     }
     
     //MARK: - createUser
@@ -72,9 +72,9 @@ class LoginTests: TestCase {
     private func createUser() throws -> JSON? {
         var json = JSON()
         
-        try json.set("name", registerName)
-        try json.set("email", email)
-        try json.set("password", password)
+        try json.set(User.Field.name, registerName)
+        try json.set(User.Field.email, email)
+        try json.set(User.Field.password, password)
         
         let body = try Body(json)
         

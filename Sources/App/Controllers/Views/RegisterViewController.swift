@@ -26,34 +26,30 @@ final class RegisterViewController: RouteCollection {
     //MARK: - POST /register
     func handleRegisterPost(_ req: Request) throws -> ResponseRepresentable {
         guard let data = req.formURLEncoded else { throw Abort.badRequest }
-        guard let password = data["password"]?.string else { throw Abort.badRequest }
+        
+        //TODO: - Generic subscript upon Swift 4
+        guard let password = data[User.Field.password.rawValue]?.string else { throw Abort.badRequest }
         guard let confirmPassword = data["confirmPassword"]?.string else { throw Abort.badRequest }
         
         if password != confirmPassword {
-            return Response("/register").flash(.error, "Passwords don't match")
+            return Response(redirect: "/register").flash(.error, "Passwords don't match")
         }
         
         var json = JSON(node: data)
-        try json.set("password", try BCryptHasher().make(password.bytes).makeString())
+        try json.set(User.Field.password, try BCryptHasher().make(password.bytes).makeString())
         
         do {
             let user = try User(json: json)
             try user.save()
             try user.authenticate(req: req)
-            return Response("/home")
+            return Response(redirect: "/home")
         } catch is MySQLError {
-            return Response("/register").flash(.error, "Email already exists")
+            return Response(redirect: "/register").flash(.error, "Email already exists")
         } catch is ValidationError {
-            return Response("/register").flash(.error, "Email format is invalid")
+            return Response(redirect: "/register").flash(.error, "Email format is invalid")
         } catch {
-            return Response("/register").flash(.error, "Something went wrong")
+            return Response(redirect: "/register").flash(.error, "Something went wrong")
         }
     }
 }
 
-//TEMPORARY:
-extension Response {
-    convenience init(_ redirect: String) {
-        self.init(status: .found, headers: ["Location": "\(redirect)"])
-    }
-}

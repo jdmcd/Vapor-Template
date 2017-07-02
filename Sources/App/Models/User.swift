@@ -19,34 +19,34 @@ final class User: Model {
     }
     
     init(row: Row) throws {
-        name = try row.get("name")
+        name = try row.get(Field.name)
         
-        let email: String = try row.get("email")
+        let email: String = try row.get(Field.email)
         self.email = try email.tested(by: EmailValidator())
         
-        password = try row.get("password")
-        admin = try row.get("admin") ?? false
+        password = try row.get(Field.password)
+        admin = try row.get(Field.admin) ?? false
     }
     
     func makeRow() throws -> Row {
         var row = Row()
         
-        try row.set("name", name)
-        try row.set("email", email)
-        try row.set("password", password)
-        try row.set("admin", admin)
+        try row.set(Field.name, name)
+        try row.set(Field.email, email)
+        try row.set(Field.password, password)
+        try row.set(Field.admin, admin)
         
         return row
     }
     
     init(json: JSON) throws {
-        name = try json.get("name")
+        name = try json.get(Field.name)
         
-        let email: String = try json.get("email")
+        let email: String = try json.get(Field.email)
         self.email = try email.tested(by: EmailValidator())
         
-        password = try json.get("password")
-        admin = try json.get("admin") ?? false
+        password = try json.get(Field.password)
+        admin = try json.get(Field.admin) ?? false
     }
 }
 
@@ -55,12 +55,12 @@ extension User: JSONConvertible {
     func makeJSON() throws -> JSON {
         var json = JSON()
         
-        try json.set("id", id)
-        try json.set("name", name)
-        try json.set("email", email)
-        try json.set("admin", admin)
-        try json.set("createdAt", updatedAt)
-        try json.set("updatedAt", createdAt)
+        try json.set(Field.id, id)
+        try json.set(Field.name, name)
+        try json.set(Field.email, email)
+        try json.set(Field.admin, admin)
+        try json.set(User.createdAtKey, createdAt)
+        try json.set(User.updatedAtKey, updatedAt)
         try json.set("token", try token()?.token)
         
         return json
@@ -72,10 +72,10 @@ extension User: Preparation {
     static func prepare(_ database: Database) throws {
         try database.create(self, closure: { builder in
             builder.id()
-            builder.string("name")
-            builder.string("email", unique: true)
-            builder.string("password")
-            builder.bool("admin")
+            builder.string(Field.name)
+            builder.string(Field.email, unique: true)
+            builder.string(Field.password)
+            builder.bool(Field.admin)
         })
     }
     
@@ -128,5 +128,16 @@ extension User {
     func unauthenticate(req: Request) throws {
         try req.auth.unauthenticate()
         try req.assertSession().destroy()
+    }
+}
+
+//MARK: - Field
+extension User {
+    enum Field: String {
+        case id
+        case name
+        case email
+        case password
+        case admin
     }
 }

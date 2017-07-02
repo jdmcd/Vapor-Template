@@ -33,19 +33,21 @@ final class LoginViewController: RouteCollection {
     
     //MARK: - POST /login
     func handleLoginPost(_ req: Request) throws -> ResponseRepresentable {
-        let invalidCredentialsResponse = Response("/login").flash(.error, "Invalid Credentials")
+        let invalidCredentialsResponse = Response(redirect: "/login").flash(.error, "Invalid Credentials")
         
         guard let data = req.formURLEncoded else { throw Abort.badRequest }
-        guard let email = data["email"]?.string else { throw Abort.badRequest }
-        guard let password = data["password"]?.string else { throw Abort.badRequest }
         
-        guard let user = try User.makeQuery().filter("email", email).first() else {
+        //TODO: - Generic subscript upon Swift 4
+        guard let email = data[User.Field.email.rawValue]?.string else { throw Abort.badRequest }
+        guard let password = data[User.Field.password.rawValue]?.string else { throw Abort.badRequest }
+        
+        guard let user = try User.makeQuery().filter(User.Field.email, email).first() else {
             return invalidCredentialsResponse
         }
         
         if try BCryptHasher().verify(password: password, matches: user.password) {
             try user.authenticate(req: req)
-            return Response("/home")
+            return Response(redirect: "/home")
         } else {
             return invalidCredentialsResponse
         }
@@ -54,6 +56,6 @@ final class LoginViewController: RouteCollection {
     //MARK: - GET /logout
     func logout(_ req: Request) throws -> ResponseRepresentable {
         try req.user().unauthenticate(req: req)
-        return Response("/login").flash(.success, "Logged Out")
+        return Response(redirect: "/login").flash(.success, "Logged Out")
     }
 }
