@@ -38,7 +38,8 @@ extension Config {
                 value: "",
                 expires: Date().addingTimeInterval(60 * 60 * 24 * 7), // 7 days
                 secure: false,
-                httpOnly: true
+                httpOnly: true,
+                sameSite: .lax
             )
         }
         
