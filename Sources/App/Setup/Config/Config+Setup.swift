@@ -26,12 +26,7 @@ extension Config {
     }
     
     private func setupMiddleware() throws {
-        //redis
-        guard let config = self["redis"] else { throw Abort.badRequest }
-        guard let url = config["url"]?.string else { throw Abort.badRequest }
-        let uri = URIParser().parse(bytes: url.bytes)
-        let redisCache = try RedisCache(hostname: uri.hostname, port: uri.port ?? 6379, password: uri.userInfo?.info)
-        
+        let redisCache = try RedisCache(config: self)
         let redisSessions = SessionsMiddleware(CacheSessions(redisCache)) { req -> Cookie in
             return Cookie(
                 name: "vapor-session",
