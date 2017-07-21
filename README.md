@@ -38,4 +38,4 @@ Check out https://github.com/mcdappdev/vaporize to automate the creation of this
 
 # Available Endpoints
 
-The API docs are hosted here: https://github.com/mcdappdev/slate and can be viewed at: mcdappdev.github.io/slate/
+The API docs are hosted here: https://github.com/mcdappdev/slate and can be viewed at: https://mcdappdev.github.io/slate/
