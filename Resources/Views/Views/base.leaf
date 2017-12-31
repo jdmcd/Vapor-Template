@@ -4,8 +4,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>#import("title")</title>
+<title>#get("title")</title>
 </head>
 
-#import("html")
+#get(html)
 </html>

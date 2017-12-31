@@ -13,4 +13,6 @@ public func boot(_ app: Application) throws {
     
     try router.register(collection: LoginController())
     try router.register(collection: RegisterController())
+    try router.register(collection: HomeViewController())
+    try router.register(collection: LoginViewController())
 }

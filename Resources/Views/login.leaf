@@ -1,7 +1,6 @@
-#extend("Views/base")
-#export("title") { Login }
+#set("title") { Login }
 
-#export("html") {
+#set("html") {
   <body>
     #embed("Views/errors")
     <form method="post" action="/login">
@@ -11,3 +10,5 @@
     </form>
   </body>
 }
+
+#embed("Views/base")

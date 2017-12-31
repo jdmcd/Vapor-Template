@@ -33,11 +33,11 @@ extension User: Migration { }
 
 //MARK: - LoginResponse
 extension User {
-    func loginResponse(token: String) throws -> LoginResponse {
-        return try LoginResponse(user: self, token: token)
+    func publicUser(token: String) throws -> PublicUser {
+        return try PublicUser(user: self, token: token)
     }
     
-    struct LoginResponse: Codable, Content {
+    struct PublicUser: Codable, Content {
         var id: Int
         var name: String
         var email: String

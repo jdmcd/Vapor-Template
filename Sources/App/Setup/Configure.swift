@@ -2,12 +2,13 @@ import Service
 import Routing
 import Vapor
 import Fluent
-import HTTP
-import MySQL
 import Foundation
 import FluentMySQL
+import Leaf
 
 public func configure(_ config: Config, _ env: Environment, _ services: inout Services) throws {
+    try services.register(LeafProvider())
+    
     let directoryConfig = DirectoryConfig.default()
     services.use(directoryConfig)
     
