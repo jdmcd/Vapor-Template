@@ -1,0 +1,115 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Async",
+        "repositoryURL": "https://github.com/vapor/async.git",
+        "state": {
+          "branch": "beta",
+          "revision": "084ddafacdfd787aab905b8b63b34d13ae104d15",
+          "version": null
+        }
+      },
+      {
+        "package": "Auth",
+        "repositoryURL": "https://github.com/vapor/auth.git",
+        "state": {
+          "branch": "beta",
+          "revision": "c95ff353f20c9763b5dec81b6ea390d9360c30ee",
+          "version": null
+        }
+      },
+      {
+        "package": "Console",
+        "repositoryURL": "https://github.com/vapor/console.git",
+        "state": {
+          "branch": "beta",
+          "revision": "b61cb141669f75ec8d820942cb04637a058d508d",
+          "version": null
+        }
+      },
+      {
+        "package": "Core",
+        "repositoryURL": "https://github.com/vapor/core.git",
+        "state": {
+          "branch": "beta",
+          "revision": "05a87407d12f99abf66971304d277cf3b9e329fb",
+          "version": null
+        }
+      },
+      {
+        "package": "Crypto",
+        "repositoryURL": "https://github.com/vapor/crypto.git",
+        "state": {
+          "branch": "beta",
+          "revision": "b31cdb4ecc32b8f529a6027c1945f404c4a41c1e",
+          "version": null
+        }
+      },
+      {
+        "package": "Engine",
+        "repositoryURL": "https://github.com/vapor/engine.git",
+        "state": {
+          "branch": "beta",
+          "revision": "26556d36665c9986cb0e24e2785992a582345805",
+          "version": null
+        }
+      },
+      {
+        "package": "Fluent",
+        "repositoryURL": "https://github.com/vapor/fluent.git",
+        "state": {
+          "branch": "beta",
+          "revision": "748140fd41656d0d5487ed3cf03df21aa301ea74",
+          "version": null
+        }
+      },
+      {
+        "package": "FluentMySQL",
+        "repositoryURL": "https://github.com/vapor/fluent-mysql.git",
+        "state": {
+          "branch": "beta",
+          "revision": "2aad33f589aef954830b6c5f013fb74512c58e15",
+          "version": null
+        }
+      },
+      {
+        "package": "Leaf",
+        "repositoryURL": "https://github.com/vapor/leaf.git",
+        "state": {
+          "branch": "beta",
+          "revision": "db7ff283c5c0dfe8b9404c94cf07b4e3ff18d060",
+          "version": null
+        }
+      },
+      {
+        "package": "MySQL",
+        "repositoryURL": "https://github.com/vapor/mysql.git",
+        "state": {
+          "branch": "beta",
+          "revision": "2687a3fca15d7c159b096dd10975b13a9119c857",
+          "version": null
+        }
+      },
+      {
+        "package": "Service",
+        "repositoryURL": "https://github.com/vapor/service.git",
+        "state": {
+          "branch": "beta",
+          "revision": "6693b1a46db13899b2ead30d91bd77950d9b5a4c",
+          "version": null
+        }
+      },
+      {
+        "package": "Vapor",
+        "repositoryURL": "https://github.com/vapor/vapor.git",
+        "state": {
+          "branch": "beta",
+          "revision": "d49b475338fcc977b7464967228bc428d6086c2f",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

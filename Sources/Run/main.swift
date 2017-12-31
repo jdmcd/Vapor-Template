@@ -1,9 +1,20 @@
 import App
+import Service
+import Vapor
 
-let config = try Config()
-try config.setup()
+let config = Config.default()
+let env = Environment.detect()
+var services = Services.default()
 
-let drop = try Droplet(config)
-try drop.setup()
+try App.configure(config, env, &services)
 
-try drop.run()
+let app = try Application(
+    config: config,
+    environment: env,
+    services: services
+)
+
+try App.boot(app)
+
+try app.run()
+

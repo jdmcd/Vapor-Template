@@ -1,40 +1,35 @@
 import Vapor
+import Fluent
 import Foundation
-import BCrypt
-import AuthProvider
-import MySQL
 
 final class LoginController: RouteCollection {
-    func build(_ builder: RouteBuilder) throws {
-        builder.version() { build in
-            build.post("login", handler: login)
-        }
+    
+    func boot(router: Router) throws {
+        router.post("/login", use: login)
     }
     
-    //MARK: - POST /api/v1/login
-    func login(_ req: Request) throws -> ResponseRepresentable {
+    func login(_ req: Request) throws -> Future<User> {
         let invalidCredentials = Abort(.badRequest, reason: "Invalid credentials")
+        let loginRequest = try req.content.decode(LoginRequest.self)
         
-        guard let json = req.json else { throw Abort.badRequest }
+        let query = try User.query(on: req).filter(joined: \User.email == loginRequest.email).first()
         
-        //TODO: - When Swift 4 is released add a generic subscript to `StructuredDataWrapper` so that `.rawValue` doesn't have to be used. See: https://github.com/apple/swift-evolution/blob/master/proposals/0148-generic-subscripts.md
-        guard let email = json[User.Field.email.rawValue]?.string else { throw Abort.badRequest }
-        guard let password = json[User.Field.password.rawValue]?.string else { throw Abort.badRequest }
-        
-        guard let user = try User.makeQuery().filter(User.Field.email, email).first() else { throw invalidCredentials }
-        
-        if try BCryptHasher().verify(password: password, matches: user.password) {
-            if try user.token() == nil {
-                let newToken = Token(token: UUID().uuidString, user_id: user.id!)
-                try newToken.save()
-            }
+        return query.flatMap(to: User.self) { user in
+            guard let user = user else { throw invalidCredentials }
+            let hasher = try req.make(BCryptHasher.self)
             
-            return try user.makeJSON()
-        } else {
-            throw invalidCredentials
+            if try hasher.verify(message: user.password, matches: loginRequest.password) {
+                return try user.token.query(on: req).count().map(to: User.self) { count in
+                    if count == 0 {
+                        let _ = try Token(token: UUID().uuidString, user_id: user.requireID()).save(on: req)
+                    }
+                    
+                    return user
+                }
+
+            } else {
+                throw invalidCredentials
+            }
         }
     }
 }
-
-//MARK: - EmptyInitializable
-extension LoginController: EmptyInitializable { }

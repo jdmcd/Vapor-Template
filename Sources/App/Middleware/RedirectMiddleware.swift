@@ -9,14 +9,13 @@ final public class RedirectMiddleware: Middleware {
         self.path = path
     }
     
-    init() {
-        
-    }
+    init() { }
     
-    public func respond(to request: Request, chainingTo next: Responder) throws -> Response {
+    //TODO: - Update auth here
+    public func respond(to request: Request, chainingTo next: Responder) throws -> Future<Response> {
         do {
-            _ = try request.user()
-            return Response(redirect: path)
+//            _ = try request.user()
+            return Future(request.redirect(to: path))
         } catch {
             return try next.respond(to: request)
         }

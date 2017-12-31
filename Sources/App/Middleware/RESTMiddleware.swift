@@ -1,18 +1,12 @@
 import Vapor
 import HTTP
 
-class RESTMiddleware: Middleware {
-    let config: Config
-    
-    init(config: Config) {
-        self.config = config
-    }
-    
-    func respond(to request: Request, chainingTo next: Responder) throws -> Response {
+final public class RESTMiddleware: Middleware {
+    public func respond(to request: Request, chainingTo next: Responder) throws -> Future<Response> {
         let unauthorizedError = Abort(.unauthorized, reason: "Please include an API-KEY")
         
-        guard let correctAPIKey = config["app", "API-KEY"]?.string else { throw Abort.badRequest }
-        guard let submittedAPIKey = request.headers["API-KEY"]?.string else { throw unauthorizedError }
+        let correctAPIKey = "correct key"
+        guard let submittedAPIKey = request.headers["API-KEY"] else { throw unauthorizedError }
         
         if correctAPIKey == submittedAPIKey {
             return try next.respond(to: request)
