@@ -8,17 +8,15 @@ final class User: Codable, Content {
     var name: String
     var email: String
     var password: String
-    var admin: Bool
     
     var token: Children<User, Token> {
         return children(\.user_id)
     }
     
-    init(name: String, email: String, password: String, admin: Bool = false) throws {
+    init(name: String, email: String, password: String) {
         self.name = name
         self.email = email
         self.password = password
-        self.admin = admin
     }
 }
 
@@ -33,6 +31,26 @@ extension User: Model {
 
 extension User: Migration { }
 
+//MARK: - LoginResponse
+extension User {
+    func loginResponse(token: String) throws -> LoginResponse {
+        return try LoginResponse(user: self, token: token)
+    }
+    
+    struct LoginResponse: Codable, Content {
+        var id: Int
+        var name: String
+        var email: String
+        var token: String
+        
+        init(user: User, token: String) throws {
+            id = try user.requireID()
+            name = user.name
+            email = user.email
+            self.token = token
+        }
+    }
+}
 
 //TODO: - token stuff
 //MARK: - SessionPersistable

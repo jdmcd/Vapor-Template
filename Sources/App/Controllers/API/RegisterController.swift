@@ -1,51 +1,31 @@
-//import Vapor
-//import Foundation
-//import BCrypt
-//import AuthProvider
-//import MySQL
-//import Validation
-//
-//final class RegisterController: RouteCollection {
-//    func build(_ builder: RouteBuilder) throws {
-//        builder.version() { build in
-//            build.post("register", handler: register)
-//        }
-//    }
-//    
-//    //POST: - /api/v1/register
-//    func register(_ req: Request) throws -> ResponseRepresentable {
-//        
-//        //don't let users who are already authenticated register again
-//        if let _ = req.auth.header?.bearer {
-//            throw Abort.badRequest
-//        }
-//        
-//        guard var json = req.json else { throw Abort.badRequest }
-//        
-//        //TODO: - Add generic subscript upon Swift 4
-//        guard let password = json[User.Field.password.rawValue]?.string else { throw Abort.badRequest }
-//        try json.set(User.Field.password, try BCryptHasher().make(password.bytes).makeString())
-//        
-//        var newUser: User!
-//        
-//        do {
-//            newUser = try User(json: json)
-//            try newUser.save()
-//        } catch is MySQLError {
-//            throw Abort(.badRequest, reason: "Email is already taken")
-//        } catch is ValidationError {
-//            throw Abort(.badRequest, reason: "Invalid email")
-//        }
-//        
-//        let newToken = Token(token: UUID().uuidString, user_id: newUser.id!)
-//        try newToken.save()
-//        
-//        let userJSON = try newUser.makeJSON()
-//        
-//        return userJSON
-//    }
-//}
-//
-////MARK: - EmptyInitializable
-//extension RegisterController: EmptyInitializable { }
+import Vapor
+import Fluent
+import Foundation
+
+final class RegisterController: RouteCollection {
+    
+    func boot(router: Router) throws {
+        router.post("/register", use: register)
+    }
+    
+    func register(_ req: Request) throws -> Future<User> {
+        let registerRequest = try req.content.decode(RegisterRequest.self)
+        let hasher = try req.make(BCryptHasher.self)
+        
+        let hashedPassword = try hasher.make(registerRequest.password)
+        
+        let userQuery = try User.query(on: req).filter(\.email == registerRequest.email).count()
+        return userQuery.flatMap(to: User.self) { count in
+            guard count == 0 else { throw Abort(.badRequest, reason: "Email already taken")}
+            
+            let newUser = User(name: registerRequest.name, email: registerRequest.email, password: hashedPassword)
+            
+            return newUser.save(on: req).map(to: User.self) { _ in
+                let _ = try Token(token: UUID().uuidString, user_id: newUser.requireID()).save(on: req)
+                return newUser
+            }
+        }
+    }
+}
+
 

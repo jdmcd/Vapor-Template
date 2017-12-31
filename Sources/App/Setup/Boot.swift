@@ -11,5 +11,6 @@ import Vapor
 public func boot(_ app: Application) throws {
     let router = try app.make(Router.self)
     
-    // Register Routes Here
+    try router.register(collection: LoginController())
+    try router.register(collection: RegisterController())
 }

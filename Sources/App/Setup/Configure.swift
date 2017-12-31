@@ -27,8 +27,7 @@ public func configure(_ config: Config, _ env: Environment, _ services: inout Se
     migrate(&migrationConfig)
     services.use(migrationConfig)
     
-    var middlewareConfig = MiddlewareConfig()
-    middlewareConfig.use(ErrorMiddleware.self)
+    let middlewareConfig = MiddlewareConfig.default()
     services.use(middlewareConfig)
 
     //TODO: - redis and sessions
