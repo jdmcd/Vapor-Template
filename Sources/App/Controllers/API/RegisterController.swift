@@ -5,7 +5,7 @@ import Foundation
 final class RegisterController: RouteCollection {
     
     func boot(router: Router) throws {
-        router.post("/register", use: register)
+        router.post("/api/v1/register", use: register)
     }
     
     func register(_ req: Request) throws -> Future<User> {

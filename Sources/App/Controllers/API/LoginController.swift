@@ -5,7 +5,7 @@ import Foundation
 final class LoginController: RouteCollection {
     
     func boot(router: Router) throws {
-        router.post("/login", use: login)
+        router.post("/api/v1/login", use: login)
     }
     
     func login(_ req: Request) throws -> Future<User.PublicUser> {

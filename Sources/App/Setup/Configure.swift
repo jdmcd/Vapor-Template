@@ -5,9 +5,12 @@ import Fluent
 import Foundation
 import FluentMySQL
 import Leaf
+import Authentication
 
 public func configure(_ config: Config, _ env: Environment, _ services: inout Services) throws {
     try services.register(LeafProvider())
+    try services.register(CommonViewContextProvider())
+    try services.register(AuthenticationProvider())
     
     let directoryConfig = DirectoryConfig.default()
     services.use(directoryConfig)
