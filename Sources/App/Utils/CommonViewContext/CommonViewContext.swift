@@ -1,6 +1,6 @@
 import Vapor
 
-class CommonViewContext: Encodable {
+class CommonViewContext: Encodable, Service {
     var extend: Extend?
     var googleAnalyticsKey: String
     var session: [String: String]?

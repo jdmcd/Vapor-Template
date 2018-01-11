@@ -2,6 +2,7 @@ import Foundation
 import Vapor
 import Fluent
 import FluentMySQL
+import Authentication
 
 final class User: Codable, Content {
     var id: Int?
@@ -18,15 +19,16 @@ final class User: Codable, Content {
         self.email = email
         self.password = password
     }
+    
+    convenience init(registerRequest: RegisterRequest) {
+        self.init(name: registerRequest.name, email: registerRequest.email, password: registerRequest.password)
+    }
 }
 
-extension User: Model {
+extension User: MySQLModel {
     static var idKey: ReferenceWritableKeyPath<User, Int?> {
         return \.id
     }
-    
-    typealias Database = MySQLDatabase
-    typealias ID = Int
 }
 
 extension User: Migration { }
@@ -51,6 +53,22 @@ extension User {
         }
     }
 }
+
+extension User: TokenAuthenticatable {
+    typealias TokenType = Token
+}
+
+extension Request {
+    func user() throws -> User {
+        return try requireAuthenticated(User.self)
+    }
+}
+
+//extension User: BearerAuthenticatable {
+//    static var tokenKey: ReferenceWritableKeyPath<User, String> {
+//        return
+//    }
+//}
 
 //TODO: - token stuff
 //MARK: - SessionPersistable

@@ -12,7 +12,7 @@ final class RegisterViewController: RouteCollection {
     }
     
     func register(_ req: Request) throws -> Future<View> {
-        return try req.make(LeafRenderer.self).make("register", request: req)
+        return try req.view().render("register", request: req)
     }
     
     func registerPost(_ req: Request) throws -> Future<Response> {
@@ -23,7 +23,7 @@ final class RegisterViewController: RouteCollection {
             return Future(req.redirect(to: "/register"))
         }
         
-        let userQuery = try User.query(on: req).filter(\.email == registerRequest.email).count()
+        let userQuery = User.query(on: req).filter(\.email == registerRequest.email).count()
         return userQuery.map(to: Response.self) { count in
             guard count == 0 else { return req.redirect(to: "/register") }
          

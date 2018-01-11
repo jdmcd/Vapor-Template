@@ -5,14 +5,14 @@ import Foundation
 final class LoginController: RouteCollection {
     
     func boot(router: Router) throws {
-        router.post("/api/v1/login", use: login)
+        router.versioned().post("login", use: login)
     }
     
     func login(_ req: Request) throws -> Future<User.PublicUser> {
         let invalidCredentials = Abort(.badRequest, reason: "Invalid credentials")
         let loginRequest = try req.content.decode(LoginRequest.self)
         
-        let query = try User.query(on: req).filter(joined: \User.email == loginRequest.email).first()
+        let query = User.query(on: req).filter(joined: \User.email == loginRequest.email).first()
         
         return query.flatMap(to: User.PublicUser.self) { user in
             guard let user = user else { throw invalidCredentials }

@@ -1,5 +1,29 @@
 import Vapor
 import Fluent
+import Authentication
+
+struct VersionRoute {
+    static let path = PathComponent(stringLiteral: "api/v1")
+}
+
+extension Router {
+    func versioned(handler: @escaping (RouteGroup) -> ()) {
+        group(VersionRoute.path, use: handler)
+    }
+    
+    func versioned() -> RouteGroup {
+        return grouped(VersionRoute.path)
+    }
+    
+    func tokenAuthed(handler: @escaping (RouteGroup) -> ()) throws {
+        group(try User.tokenAuthMiddleware(), use: handler)
+    }
+    
+    func tokenAuthed() throws -> RouteGroup {
+        return grouped(try User.tokenAuthMiddleware())
+    }
+}
+
 
 //import Routing
 //import AuthProvider
@@ -9,13 +33,7 @@ import Fluent
 //}
 //
 //extension RouteBuilder {
-//    func version(handler: (RouteBuilder) -> ()) {
-//        group(path: [VersionRoute.path], handler: handler)
-//    }
-//
-//    func versioned() -> RouteBuilder {
-//        return grouped(VersionRoute.path)
-//    }
+
 //}
 //
 //extension RouteBuilder {
@@ -44,6 +62,4 @@ import Fluent
 //enum FrontendMiddlewareType {
 //    case all
 //    case noAuthed
-//}
-
-extension Request: DatabaseConnectable { } 
+//} 

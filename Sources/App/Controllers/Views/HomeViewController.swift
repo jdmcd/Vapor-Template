@@ -10,6 +10,6 @@ final class HomeViewController: RouteCollection {
     //MARK: - GET /home
     func home(_ req: Request) throws -> Future<View> {
         let context = HomeViewContext(userName: "name")
-        return try req.make(LeafRenderer.self).make("home", context, request: req)
+        return try req.view().render("home", context, request: req)
     }
 }

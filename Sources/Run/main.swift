@@ -2,11 +2,11 @@ import App
 import Service
 import Vapor
 
-let config = Config.default()
+var config = Config.default()
 let env = Environment.detect()
 var services = Services.default()
 
-try App.configure(config, env, &services)
+try App.configure(&config, env, &services)
 
 let app = try Application(
     config: config,

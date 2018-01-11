@@ -14,7 +14,7 @@ final class LoginViewController: RouteCollection {
     
     //MARK: - GET /login
     func login(_ req: Request) throws -> Future<View> {
-        return try req.make(LeafRenderer.self).make("login")
+        return try req.view().render("login", request: req)
     }
     
     //MARK: - POST /login
@@ -23,7 +23,7 @@ final class LoginViewController: RouteCollection {
         let invalidCredentialsResponse = req.redirect(to: "/login")
         let loginRequest = try req.content.decode(LoginRequest.self)
         
-        let query = try User.query(on: req).filter(joined: \User.email == loginRequest.email).first()
+        let query = User.query(on: req).filter(joined: \User.email == loginRequest.email).first()
         
         return query.map(to: Response.self) { user in
             guard let user = user else { return invalidCredentialsResponse }

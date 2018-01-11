@@ -2,10 +2,11 @@ import Foundation
 import Vapor
 import Fluent
 import FluentMySQL
+import Authentication
 
 final class Token: Codable, Content {
     var id: Int?
-    let token: String
+    var token: String
     var user_id: User.ID
     
     var user: Parent<Token, User> {
@@ -18,13 +19,22 @@ final class Token: Codable, Content {
     }
 }
 
-extension Token: Model {
+extension Token: MySQLModel {
     static var idKey: ReferenceWritableKeyPath<Token, Int?> {
         return \.id
     }
-    
-    typealias Database = MySQLDatabase
-    typealias ID = Int
 }
 
 extension Token: Migration { }
+
+extension Token: BearerAuthenticatable, Authentication.Token {
+    static var userIDKey: ReferenceWritableKeyPath<Token, Int> {
+        return \.user_id
+    }
+    
+    typealias UserType = User
+    
+    static var tokenKey: ReferenceWritableKeyPath<Token, String> {
+        return \.token
+    }
+}

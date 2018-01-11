@@ -7,17 +7,27 @@ import FluentMySQL
 import Leaf
 import Authentication
 
-public func configure(_ config: Config, _ env: Environment, _ services: inout Services) throws {
+public func configure(_ config: inout Config, _ env: Environment, _ services: inout Services) throws {
+    
+    //MARK: - Heroku
+    services.register(EngineServerConfig.heroku())
+    
+    //MARK: - Leaf
     try services.register(LeafProvider())
+    config.prefer(LeafRenderer.self, for: TemplateRenderer.self)
+
+    //MARK: - CommonViewContext
     try services.register(CommonViewContextProvider())
+    
+    //MARK: - Authentication
     try services.register(AuthenticationProvider())
-    
+
+    //MARK: - Directory Config
     let directoryConfig = DirectoryConfig.default()
-    services.use(directoryConfig)
+    services.register(directoryConfig)
     
-    try services.register(FluentProvider())
-    services.use(FluentMySQLConfig())
-    
+    //MARK: - Fluent/MySQL
+    try services.register(FluentMySQLProvider())
     var databaseConfig = DatabaseConfig()
     
     let username = "root"
@@ -25,14 +35,16 @@ public func configure(_ config: Config, _ env: Environment, _ services: inout Se
     
     let db = MySQLDatabase(hostname: "localhost", user: username, password: nil, database: database)
     databaseConfig.add(database: db, as: .mysql)
-    services.use(databaseConfig)
+    services.register(databaseConfig)
     
+    //MARK: - Migrations
     var migrationConfig = MigrationConfig()
     migrate(&migrationConfig)
-    services.use(migrationConfig)
+    services.register(migrationConfig)
     
+    //MARK: - Middleware
     let middlewareConfig = MiddlewareConfig.default()
-    services.use(middlewareConfig)
+    services.register(middlewareConfig)
 
     //TODO: - redis and sessions
 //    let redisCache = try RedisCache(config: self)
@@ -60,10 +72,3 @@ func migrate(_ migrationConfig: inout MigrationConfig) {
     migrationConfig.add(model: User.self, database: .mysql)
     migrationConfig.add(model: Token.self, database: .mysql)
 }
-
-extension DatabaseIdentifier {
-    static var mysql: DatabaseIdentifier<MySQLDatabase> {
-        return .init("mysql")
-    }
-}
-
