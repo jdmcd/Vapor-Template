@@ -1,3 +1,6 @@
+# NOTICE: Deprecated 
+This repository is no longer being maintained and is replaced by https://github.com/gotranseo/template. 
+
 # Vapor-Template
 A starting point for all of my Vapor projects
 
